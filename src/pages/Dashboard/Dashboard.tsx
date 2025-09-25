@@ -1,0 +1,59 @@
+import React from 'react';
+import { Users, Star, Gift, FileText } from 'lucide-react';
+import type { Member, Coupon } from '../../types/index.tsx';
+import StatsCard from '../../components/UI/StatCard.tsx';
+
+interface DashboardPageProps {
+  members: Member[];
+  coupons: Coupon[];
+}
+
+const DashboardPage: React.FC<DashboardPageProps> = ({ members, coupons }) => (
+  <div className="space-y-6">
+    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <StatsCard 
+        title="สมาชิกทั้งหมด" 
+        value={members.length} 
+        icon={Users} 
+        color="blue" 
+      />
+      <StatsCard 
+        title="คะแนนรวม" 
+        value={members.reduce((sum, m) => sum + m.points, 0)} 
+        icon={Star} 
+        color="yellow" 
+      />
+      <StatsCard 
+        title="คูปองทั้งหมด" 
+        value={coupons.length} 
+        icon={Gift} 
+        color="green" 
+      />
+      <StatsCard 
+        title="คูปองที่ใช้งานได้" 
+        value={coupons.filter(c => c.isActive).length} 
+        icon={FileText} 
+        color="purple" 
+      />
+    </div>
+
+    <div className="bg-white p-6 rounded-lg shadow border">
+      <h2 className="text-lg font-semibold text-gray-800 mb-4">สมาชิกล่าสุด</h2>
+      <div className="space-y-3">
+        {members.slice(0, 5).map(member => (
+          <div key={member.id} className="flex items-center justify-between p-3 bg-gray-50 rounded">
+            <div>
+              <p className="font-medium text-gray-800">{member.name}</p>
+              <p className="text-sm text-gray-600">{member.id} • {member.phone}</p>
+            </div>
+            <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-sm">
+              {member.points} แต้ม
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
+  </div>
+);
+
+export default DashboardPage;
