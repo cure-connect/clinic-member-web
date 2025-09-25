@@ -1,6 +1,6 @@
 export interface User {
   username: string;
-  role: 'admin' | 'staff';
+  role: 'manager' | 'admin';
   name: string;
 }
 
@@ -26,13 +26,14 @@ export interface Coupon {
 export interface LoginData {
   username: string;
   password: string;
+  role: string;
 }
 
 export interface NavigationItem {
   id: string;
   label: string;
   icon: any;
-  roles: ('admin' | 'staff')[];
+  roles: ('admin' | 'manager')[];
 }
 
 export interface StatsCardProps {

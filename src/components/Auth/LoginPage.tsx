@@ -1,45 +1,46 @@
 import React, { useState } from 'react';
 import { User, LogIn, Lock } from 'lucide-react';
 import type { User as UserType, LoginData } from '../../types/index.tsx';
+import { useNavigate } from 'react-router-dom';
 
 interface LoginPageProps {
-  onLogin: (user: UserType) => void;
+  onLogin: (user: UserType, token: string) => void;
 }
 
 const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
   const [loginData, setLoginData] = useState<LoginData>({
     username: '',
-    password: ''
+    password: '',
+    role: 'manager'
   });
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>('');
+  const navigate = useNavigate();
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>): Promise<void> => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsLoading(true);
     setError('');
 
-    // Simulate API call
-    setTimeout(() => {
-      // Demo users
-      const users: Record<string, { password: string; role: 'admin' | 'staff'; name: string }> = {
-        'admin': { password: 'admin123', role: 'admin', name: 'ผู้ดูแลระบบ' },
-        'staff': { password: 'staff123', role: 'staff', name: 'เจ้าหน้าที่' }
-      };
+    try {
+      const response = await fetch('http://localhost:8888/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(loginData),
+      });
 
-      const user = users[loginData.username];
-      if (user && user.password === loginData.password) {
-        onLogin({
-          username: loginData.username,
-          role: user.role,
-          name: user.name
-        });
-      } else {
-        setError('ชื่อผู้ใช้งานหรือรหัสผ่านไม่ถูกต้อง');
-      }
+      if (!response.ok) throw new Error('Invalid credentials');
+
+      const data = await response.json();
+      onLogin(data.data.username, data.data.token);
+      navigate('/dashboard');
+    } catch (err) {
+      setError('ชื่อผู้ใช้งานหรือรหัสผ่านไม่ถูกต้อง');
+    } finally {
       setIsLoading(false);
-    }, 1000);
+    }
   };
+
 
   const handleInputChange = (field: keyof LoginData) => (
     e: React.ChangeEvent<HTMLInputElement>
@@ -77,7 +78,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
                 className="w-full pl-10 pr-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 value={loginData.username}
                 onChange={handleInputChange('username')}
-                placeholder="admin หรือ staff"
+                placeholder="กรอกชื่อผู้ใช้งาน"
               />
             </div>
           </div>
@@ -94,7 +95,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
                 className="w-full pl-10 pr-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 value={loginData.password}
                 onChange={handleInputChange('password')}
-                placeholder="admin123 หรือ staff123"
+                placeholder="กรอกรหัสผ่าน"
               />
             </div>
           </div>
@@ -102,24 +103,15 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
           <button
             type="submit"
             disabled={isLoading}
-            className={`w-full py-3 px-4 rounded-lg text-white font-medium flex items-center justify-center gap-2 ${
-              isLoading 
-                ? 'bg-gray-400 cursor-not-allowed' 
+            className={`w-full py-3 px-4 rounded-lg text-white font-medium flex items-center justify-center gap-2 ${isLoading
+                ? 'bg-gray-400 cursor-not-allowed'
                 : 'bg-blue-500 hover:bg-blue-600'
-            }`}
+              }`}
           >
             <LogIn className="w-4 h-4" />
             {isLoading ? 'กำลังเข้าสู่ระบบ...' : 'เข้าสู่ระบบ'}
           </button>
         </form>
-
-        <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-          <h3 className="font-medium text-gray-800 mb-2">บัญชีทดสอบ:</h3>
-          <div className="text-sm text-gray-600 space-y-1">
-            <p><strong>Admin:</strong> admin / admin123</p>
-            <p><strong>Staff:</strong> staff / staff123</p>
-          </div>
-        </div>
       </div>
     </div>
   );
