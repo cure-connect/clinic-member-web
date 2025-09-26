@@ -26,11 +26,13 @@ const App: React.FC = () => {
 
   useEffect(() => {
     const savedUser = localStorage.getItem('clinicUser');
-    if (savedUser) {
+    const savedToken = localStorage.getItem('clinicToken');
+    if (savedUser && savedToken) {
       try {
         setUser(JSON.parse(savedUser));
       } catch {
         localStorage.removeItem('clinicUser');
+        localStorage.removeItem('clinicToken');
       }
     }
     setIsLoading(false);
@@ -38,8 +40,10 @@ const App: React.FC = () => {
 
   const handleLogin = (userData: User, token?: string): void => {
     setUser(userData);
-    localStorage.setItem('clinicUser', JSON.stringify(userData));
-    if (token) localStorage.setItem('clinicToken', token);
+    if (token) {
+      localStorage.setItem('clinicUser', JSON.stringify(userData));
+      localStorage.setItem('clinicToken', token);
+    }
   };
 
   const handleLogout = (): void => {
@@ -78,7 +82,7 @@ const App: React.FC = () => {
     <div className="min-h-screen bg-gray-100">
       <Header user={user} onLogout={handleLogout} />
       <div className="flex">
-        <Sidebar userRole={user.role} currentPage={currentPage} setCurrentPage={setCurrentPage} />
+        <Sidebar user={user} onLogout={handleLogout} />
         <main className="flex-1 p-6">
           <Routes>
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
@@ -97,17 +101,17 @@ const App: React.FC = () => {
             <Route path="/create-member" element={<CreateMemberPage members={members} setMembers={setMembers} />} />
             <Route
               path="/import-members"
-              element={user.role === 'admin' ? <ImportMembersPage /> : <AccessDenied />}
+              element={user.role === 'manager' || 'admin' ? <ImportMembersPage /> : <AccessDenied />}
             />
             <Route path="/manage-points" element={<PointsManagementPage members={members} setMembers={setMembers} />} />
             <Route
               path="/create-coupon"
-              element={user.role === 'admin' ? <CreateCouponPage coupons={coupons} setCoupons={setCoupons} /> : <AccessDenied />}
+              element={user.role === 'manager' || 'admin' ? <CreateCouponPage coupons={coupons} setCoupons={setCoupons} /> : <AccessDenied />}
             />
             <Route path="/use-coupon" element={<UseCouponPage members={members} setMembers={setMembers} coupons={coupons} />} />
             <Route path="/coupon-history" element={<CouponHistoryPage />} />
             <Route path="/print-card" element={<PrintCardPage members={members} />} />
-            <Route path="/users" element={user.role === 'admin' ? <UsersManagementPage /> : <AccessDenied />} />
+            <Route path="/users" element={user.role === 'manager' || 'admin' ? <UsersManagementPage /> : <AccessDenied />} />
             <Route path="*" element={<Navigate to="/dashboard" replace />} />
           </Routes>
         </main>

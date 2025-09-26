@@ -1,14 +1,13 @@
 export interface User {
   username: string;
   role: 'manager' | 'admin';
-  name: string;
 }
 
 export interface Member {
   id: string;
   name: string;
   phone: string;
-  email: string;
+  created_by: string;
   points: number;
   joinDate: string;
   qrCode: string;

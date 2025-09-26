@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Printer } from 'lucide-react';
-import type { Member } from '../../types/index';
-import MemberCard from '../../components/UI/MemberCard';
+import type { Member } from '../../types/index.tsx';
+import MemberCard from '../../components/UI/MemberCard.tsx';
 
 interface PrintCardPageProps {
   members: Member[];

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Search, Eye, Edit, Trash2, Printer } from 'lucide-react';
 import type { Member, PageType } from '../../types/index.tsx';
-import MemberCard from '../../components/UI/MemberCard';
+import MemberCard from '../../components/UI/MemberCard.tsx';
 
 interface MembersPageProps {
     members: Member[];
@@ -76,7 +76,7 @@ const MembersPage: React.FC<MembersPageProps> = ({
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <div className="text-sm text-gray-900">{member.phone}</div>
-                                        <div className="text-sm text-gray-500">{member.email}</div>
+                                        <div className="text-sm text-gray-500">{member.created_by}</div>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-sm">
