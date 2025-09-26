@@ -17,13 +17,13 @@ const Header: React.FC<HeaderProps> = ({ user, onLogout }) => (
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-2">
               <User className="w-4 h-4 text-gray-600" />
-              <span className="text-sm text-gray-700">{user.name}</span>
+              <span className="text-sm text-gray-700">{user.username}</span>
               <span className={`text-xs px-2 py-1 rounded ${
-                user.role === 'admin' 
+                user.role === 'manager' 
                   ? 'bg-green-100 text-green-800' 
                   : 'bg-blue-100 text-blue-800'
               }`}>
-                {user.role === 'admin' ? 'Admin' : 'Staff'}
+                {user.role === 'manager' ? 'manager' : 'admin'}
               </span>
             </div>
             <button

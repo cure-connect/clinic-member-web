@@ -1,8 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import {
-  Users, UserPlus, Upload, Scan, Star, Gift, FileText, History, Settings
-} from 'lucide-react';
+import { Users, UserPlus, Upload, Scan, Star, Gift, FileText, History, Settings } from 'lucide-react';
 import type { NavigationItem, PageType } from '../../types/index.tsx';
 
 interface SidebarProps {
