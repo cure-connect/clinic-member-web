@@ -8,15 +8,15 @@ const MemberCard: React.FC<MemberCardProps> = ({ member, showPrint = false }) =>
     } shadow-lg`}>
       <div className="flex justify-between items-start">
         <div>
-          <h3 className="text-lg font-bold">{member.name}</h3>
-          <p className="text-sm opacity-90">รหัสสมาชิก: {member.id}</p>
+          <h3 className="text-lg font-bold">{member.firstname} {member.lastname}</h3>
+          <p className="text-sm opacity-90">รหัสสมาชิก: {member.userid}</p>
           <p className="text-sm opacity-90">คะแนน: {member.points} แต้ม</p>
         </div>
         <div className="bg-white p-2 rounded">
           <img 
             /*src={generateQRCode(member.qrCode)} */
             alt="QR Code" 
-            className="w-16 h-16" 
+            className="w-20 h-22" 
           />
         </div>
       </div>

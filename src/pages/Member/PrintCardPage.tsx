@@ -1,15 +1,27 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Printer } from 'lucide-react';
 import type { Member } from '../../types/index.tsx';
 import MemberCard from '../../components/UI/MemberCard.tsx';
 
-interface PrintCardPageProps {
-  members: Member[];
-}
-
-const PrintCardPage: React.FC<PrintCardPageProps> = ({ members }) => {
+const PrintCardPage: React.FC = () => {
+  const [members, setMembers] = useState<Member[]>([]);
   const [selectedMemberId, setSelectedMemberId] = useState<string>('');
-  const selectedMember = members.find(m => m.id === selectedMemberId);
+  const selectedMember = members.find(m => m.userid === selectedMemberId);
+
+  useEffect(() => {
+    const fetchMembers = async () => {
+      try {
+        const res = await fetch('http://localhost:8888/api/user');
+        if (!res.ok) throw new Error('Failed to fetch members');
+        const data = await res.json();
+        setMembers(data);
+      } catch (err) {
+        console.error('Error fetching members:', err);
+      }
+    };
+
+    fetchMembers();
+  }, []);
 
   return (
     <div className="space-y-6">
@@ -25,8 +37,8 @@ const PrintCardPage: React.FC<PrintCardPageProps> = ({ members }) => {
           >
             <option value="">เลือกสมาชิก</option>
             {members.map(member => (
-              <option key={member.id} value={member.id}>
-                {member.name} ({member.id})
+              <option key={member.userid} value={member.userid}>
+                {member.firstname} ({member.userid})
               </option>
             ))}
           </select>

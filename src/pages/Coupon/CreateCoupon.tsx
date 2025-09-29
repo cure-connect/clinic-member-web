@@ -2,11 +2,6 @@ import React, { useState } from 'react';
 import { Plus } from 'lucide-react';
 import type { Coupon } from '../../types/index.tsx';
 
-interface CreateCouponPageProps {
-    coupons: Coupon[];
-    setCoupons: (coupons: Coupon[]) => void;
-}
-
 interface NewCoupon {
     name: string;
     pointsRequired: string;
@@ -14,7 +9,8 @@ interface NewCoupon {
     validUntil?: string;
 }
 
-const CreateCouponPage: React.FC<CreateCouponPageProps> = ({ coupons, setCoupons }) => {
+const CreateCouponPage: React.FC = () => {
+    const [coupons, setCoupons] = useState<Coupon[]>([]);
     const [newCoupon, setNewCoupon] = useState<NewCoupon>({
         name: '',
         pointsRequired: '',
@@ -24,22 +20,25 @@ const CreateCouponPage: React.FC<CreateCouponPageProps> = ({ coupons, setCoupons
 
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>): void => {
         e.preventDefault();
+
         const coupon: Coupon = {
-            ...newCoupon,
             id: `C${String(coupons.length + 1).padStart(3, '0')}`,
+            name: newCoupon.name,
             pointsRequired: parseInt(newCoupon.pointsRequired),
+            description: newCoupon.description,
             isActive: true,
             validUntil: newCoupon.validUntil || undefined
         };
 
         setCoupons([...coupons, coupon]);
         setNewCoupon({ name: '', pointsRequired: '', description: '', validUntil: '' });
+
         alert('สร้างคูปองเรียบร้อยแล้ว');
     };
 
     const handleInputChange = (field: keyof NewCoupon) => (
         e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-    ): void => {
+    ) => {
         setNewCoupon(prev => ({ ...prev, [field]: e.target.value }));
     };
 
@@ -64,7 +63,7 @@ const CreateCouponPage: React.FC<CreateCouponPageProps> = ({ coupons, setCoupons
                     <input
                         type="number"
                         required
-                        min="1"
+                        min={1}
                         className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                         value={newCoupon.pointsRequired}
                         onChange={handleInputChange('pointsRequired')}
@@ -102,6 +101,19 @@ const CreateCouponPage: React.FC<CreateCouponPageProps> = ({ coupons, setCoupons
                     </button>
                 </div>
             </form>
+
+            {coupons.length > 0 && (
+                <div className="mt-6">
+                    <h3 className="text-lg font-semibold mb-2">คูปองที่สร้างแล้ว</h3>
+                    <ul className="space-y-2">
+                        {coupons.map(c => (
+                            <li key={c.id} className="p-2 border rounded bg-gray-50">
+                                {c.name} - {c.pointsRequired} คะแนน {c.validUntil ? `(หมดอายุ: ${c.validUntil})` : ''}
+                            </li>
+                        ))}
+                    </ul>
+                </div>
+            )}
         </div>
     );
 };

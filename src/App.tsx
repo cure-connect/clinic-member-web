@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
-import type { User, Member, Coupon, PageType } from './types/index.tsx';
+import type { User } from './types/index.tsx';
 import LoginPage from './components/Auth/LoginPage.tsx';
 import Header from './components/Layouts/Header.tsx';
 import Sidebar from './components/Layouts/Sidebar.tsx';
@@ -19,10 +19,6 @@ import './App.css';
 const App: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [currentPage, setCurrentPage] = useState<PageType>('dashboard');
-  const [selectedMember, setSelectedMember] = useState<Member | null>(null);
-  const [members, setMembers] = useState<Member[]>([]);
-  const [coupons, setCoupons] = useState<Coupon[]>([]);
 
   useEffect(() => {
     const savedUser = localStorage.getItem('clinicUser');
@@ -78,6 +74,8 @@ const App: React.FC = () => {
     );
   }
 
+  const isManagerOrAdmin = user.role === 'manager' || user.role === 'admin';
+
   return (
     <div className="min-h-screen bg-gray-100">
       <Header user={user} onLogout={handleLogout} />
@@ -86,32 +84,16 @@ const App: React.FC = () => {
         <main className="flex-1 p-6">
           <Routes>
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
-            <Route path="/dashboard" element={<DashboardPage members={members} coupons={coupons} />} />
-            <Route
-              path="/members"
-              element={
-                <MembersPage
-                  members={members}
-                  setSelectedMember={setSelectedMember}
-                  selectedMember={selectedMember}
-                  setCurrentPage={setCurrentPage}
-                />
-              }
-            />
-            <Route path="/create-member" element={<CreateMemberPage members={members} setMembers={setMembers} />} />
-            <Route
-              path="/import-members"
-              element={user.role === 'manager' || 'admin' ? <ImportMembersPage /> : <AccessDenied />}
-            />
-            <Route path="/manage-points" element={<PointsManagementPage members={members} setMembers={setMembers} />} />
-            <Route
-              path="/create-coupon"
-              element={user.role === 'manager' || 'admin' ? <CreateCouponPage coupons={coupons} setCoupons={setCoupons} /> : <AccessDenied />}
-            />
-            <Route path="/use-coupon" element={<UseCouponPage members={members} setMembers={setMembers} coupons={coupons} />} />
+            <Route path="/dashboard" element={<DashboardPage />} />
+            <Route path="/members" element={<MembersPage />} />
+            <Route path="/create-member" element={<CreateMemberPage />} />
+            <Route path="/import-members" element={isManagerOrAdmin ? <ImportMembersPage /> : <AccessDenied />} />
+            <Route path="/manage-points" element={<PointsManagementPage />} />
+            <Route path="/create-coupon" element={isManagerOrAdmin ? <CreateCouponPage /> : <AccessDenied />} />
+            <Route path="/use-coupon" element={<UseCouponPage />} />
             <Route path="/coupon-history" element={<CouponHistoryPage />} />
-            <Route path="/print-card" element={<PrintCardPage members={members} />} />
-            <Route path="/users" element={user.role === 'manager' || 'admin' ? <UsersManagementPage /> : <AccessDenied />} />
+            <Route path="/print-card" element={<PrintCardPage />} />
+            <Route path="/users" element={isManagerOrAdmin ? <UsersManagementPage /> : <AccessDenied />} />
             <Route path="*" element={<Navigate to="/dashboard" replace />} />
           </Routes>
         </main>

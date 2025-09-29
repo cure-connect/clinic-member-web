@@ -1,11 +1,5 @@
 import React, { useState } from 'react';
 import { Plus } from 'lucide-react';
-import type { Member } from '@/types/index.tsx';
-
-interface CreateMemberPageProps {
-  members: Member[];
-  setMembers: (members: Member[]) => void;
-}
 
 interface NewMember {
   title: string;
@@ -16,7 +10,7 @@ interface NewMember {
   linePermission: boolean;
 }
 
-const CreateMemberPage: React.FC<CreateMemberPageProps> = ({ members, setMembers }) => {
+const CreateMemberPage: React.FC = () => {
   const [newMember, setNewMember] = useState<NewMember>({
     title: '',
     firstname: '',
@@ -43,20 +37,8 @@ const CreateMemberPage: React.FC<CreateMemberPageProps> = ({ members, setMembers
         throw new Error('ไม่สามารถสร้างสมาชิกได้');
       }
 
-      const data = await response.json();
+      await response.json();
 
-      const newId = `M${String(members.length + 1).padStart(3, '0')}`;
-      const member: Member = {
-        id: newId,
-        name: `${newMember.title}${newMember.firstname} ${newMember.lastname}`,
-        phone: newMember.mobile_no,
-        created_by: newMember.created_by,
-        points: 0,
-        joinDate: new Date().toISOString().split('T')[0],
-        qrCode: `${newId}-QR-DATA`
-      };
-
-      setMembers([...members, member]);
       setNewMember({
         title: '',
         firstname: '',

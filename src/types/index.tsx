@@ -4,22 +4,31 @@ export interface User {
 }
 
 export interface Member {
-  id: string;
-  name: string;
-  phone: string;
+  userid: string;
+  title: string;
+  firstname: string;
+  lastname: string;
+  mobile_no: string;
+  role: string;
   created_by: string;
+  created_at: string;
   points: number;
   joinDate: string;
   qrCode: string;
 }
 
 export interface Coupon {
-  id: string;
-  name: string;
-  pointsRequired: number;
-  description: string;
-  validUntil?: string;
-  isActive: boolean;
+  rewardid: string;
+  title: string,
+  description: string,
+  point_require: number,
+  limit_per_user: number,
+  start_date: Date,
+  end_date: Date,
+  status_campaign: string,
+  created_at: Date,
+  updated_at: Date,
+  created_by: string
 }
 
 export interface LoginData {
