@@ -33,18 +33,15 @@ const MembersPage: React.FC = () => {
   );
 
   return (
-    <div className="space-y-4">
-      <div className="flex justify-between items-center">
+    <div className="space-y-4 p-4 sm:p-6">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 sm:gap-0">
         <h2 className="text-xl font-semibold text-gray-800">จัดการข้อมูลสมาชิก</h2>
-      </div>
-
-      <div className="flex gap-4 mb-4">
-        <div className="relative flex-1">
+        <div className="relative w-full sm:w-64">
           <Search className="absolute left-3 top-3 w-4 h-4 text-gray-400" />
           <input
             type="text"
             placeholder="ค้นหาสมาชิก..."
-            className="pl-10 pr-4 py-2 w-full border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="pl-10 pr-4 py-2 w-full border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
@@ -54,49 +51,47 @@ const MembersPage: React.FC = () => {
       {loading ? (
         <div className="text-center py-6">กำลังโหลดข้อมูล...</div>
       ) : (
-        <div className="bg-white rounded-lg shadow border overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full">
+        <>
+          <div className="hidden md:block overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200 table-auto">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">รหัส/ชื่อ</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ติดต่อ</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">บทบาท</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">วันที่สมัคร</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">จัดการ</th>
+                  <th className="px-4 py-2 text-left text-xs sm:text-sm font-medium text-gray-500 uppercase tracking-wider">รหัส/ชื่อ</th>
+                  <th className="px-4 py-2 text-left text-xs sm:text-sm font-medium text-gray-500 uppercase tracking-wider">ติดต่อ</th>
+                  <th className="px-4 py-2 text-left text-xs sm:text-sm font-medium text-gray-500 uppercase tracking-wider">บทบาท</th>
+                  <th className="px-4 py-2 text-left text-xs sm:text-sm font-medium text-gray-500 uppercase tracking-wider">วันที่สมัคร</th>
+                  <th className="px-4 py-2 text-left text-xs sm:text-sm font-medium text-gray-500 uppercase tracking-wider">จัดการ</th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {filteredMembers.map(member => (
                   <tr key={member.userid}>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div>
-                        <div className="text-sm font-medium text-gray-900">{member.title} {member.firstname} {member.lastname}</div>
-                        <div className="text-sm text-gray-500">{member.userid}</div>
-                      </div>
+                    <td className="px-4 py-2 text-sm sm:text-base">
+                      <div>{member.title} {member.firstname} {member.lastname}</div>
+                      <div className="text-gray-500 text-xs sm:text-sm">{member.userid}</div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">{member.mobile_no}</div>
-                      <div className="text-sm text-gray-500">{member.created_by}</div>
+                    <td className="px-4 py-2 text-sm sm:text-base">
+                      <div>{member.mobile_no}</div>
+                      <div className="text-gray-500 text-xs sm:text-sm">{member.created_by}</div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-sm">{member.role}</span>
+                    <td className="px-4 py-2 text-sm sm:text-base">
+                      <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs sm:text-sm">{member.role}</span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <td className="px-4 py-2 text-sm sm:text-base text-gray-500">
                       {new Date(member.created_at).toLocaleDateString('th-TH')}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
-                      <button onClick={() => setSelectedMember(member)} className="text-blue-600 hover:text-blue-900" title="ดูบัตรสมาชิก">
-                        <Eye className="w-4 h-4" />
+                    <td className="px-4 py-2 text-sm sm:text-base flex space-x-2">
+                      <button onClick={() => setSelectedMember(member)} className="text-blue-600 hover:text-blue-900 p-2 rounded-lg">
+                        <Eye className="w-6 h-6" />
                       </button>
-                      <button className="text-yellow-600 hover:text-yellow-900" title="แก้ไข">
-                        <Edit className="w-4 h-4" />
+                      <button className="text-yellow-600 hover:text-yellow-900 p-2 rounded-lg">
+                        <Edit className="w-6 h-6" />
                       </button>
-                      <button className="text-red-600 hover:text-red-900" title="ลบ">
-                        <Trash2 className="w-4 h-4" />
+                      <button className="text-red-600 hover:text-red-900 p-2 rounded-lg">
+                        <Trash2 className="w-6 h-6" />
                       </button>
-                      <button onClick={() => setCurrentPage('print-card')} className="text-green-600 hover:text-green-900" title="พิมพ์บัตร">
-                        <Printer className="w-4 h-4" />
+                      <button onClick={() => setCurrentPage('print-card')} className="text-green-600 hover:text-green-900 p-2 rounded-lg">
+                        <Printer className="w-6 h-6" />
                       </button>
                     </td>
                   </tr>
@@ -104,7 +99,37 @@ const MembersPage: React.FC = () => {
               </tbody>
             </table>
           </div>
-        </div>
+
+          <div className="md:hidden space-y-3">
+            {filteredMembers.map(member => (
+              <div key={member.userid} className="bg-white p-4 rounded-lg shadow flex flex-col gap-2">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <p className="font-medium text-gray-800">{member.title} {member.firstname} {member.lastname}</p>
+                    <p className="text-gray-500 text-sm">{member.userid} • {member.mobile_no}</p>
+                    <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs mt-1 inline-block">{member.role}</span>
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    <button onClick={() => setSelectedMember(member)} className="text-blue-600 hover:text-blue-900 p-2 rounded-lg">
+                      <Eye className="w-6 h-6" />
+                    </button>
+                    <button className="text-yellow-600 hover:text-yellow-900 p-2 rounded-lg">
+                      <Edit className="w-6 h-6" />
+                    </button>
+                    <button className="text-red-600 hover:text-red-900 p-2 rounded-lg">
+                      <Trash2 className="w-6 h-6" />
+                    </button>
+                    <button onClick={() => setCurrentPage('print-card')} className="text-green-600 hover:text-green-900 p-2 rounded-lg">
+                      <Printer className="w-6 h-6" />
+                    </button>
+                  </div>
+                </div>
+                <div className="text-gray-500 text-xs">{member.created_by}</div>
+                <div className="text-gray-500 text-xs">{new Date(member.created_at).toLocaleDateString('th-TH')}</div>
+              </div>
+            ))}
+          </div>
+        </>
       )}
 
       {selectedMember && (
@@ -116,7 +141,7 @@ const MembersPage: React.FC = () => {
             <div className="mt-4 flex justify-end">
               <button
                 onClick={() => setSelectedMember(null)}
-                className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
+                className="px-4 py-2 bg-red-500 text-white rounded hover:bg-gray-600"
               >
                 ปิด
               </button>

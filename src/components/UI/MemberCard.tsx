@@ -8,7 +8,7 @@ const MemberCard: React.FC<MemberCardProps> = ({ member, showPrint = false }) =>
     } shadow-lg`}>
       <div className="flex justify-between items-start">
         <div>
-          <h3 className="text-lg font-bold">{member.firstname} {member.lastname}</h3>
+          <h3 className="text-lg font-bold">{member.title} {member.firstname} {member.lastname}</h3>
           <p className="text-sm opacity-90">รหัสสมาชิก: {member.userid}</p>
           <p className="text-sm opacity-90">คะแนน: {member.points} แต้ม</p>
         </div>
@@ -21,7 +21,7 @@ const MemberCard: React.FC<MemberCardProps> = ({ member, showPrint = false }) =>
         </div>
       </div>
       <div className="mt-4">
-        <p className="text-xs opacity-80">คลินิกสุขภาพดี</p>
+        <p className="text-xs opacity-80">Dental Clinic</p>
         <p className="text-xs opacity-80">โทร: 02-123-4567</p>
       </div>
     </div>
