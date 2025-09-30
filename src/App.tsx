@@ -15,6 +15,7 @@ import UseCouponPage from './pages/Coupon/UseCouponPage.tsx';
 import CouponHistoryPage from './pages/Coupon/CouponHistory.tsx';
 import UsersManagementPage from './pages/Users/UserManagement.tsx';
 import './App.css';
+import ScanQRPage from './pages/QRCode/QrScanPage.tsx';
 
 const App: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -88,6 +89,7 @@ const App: React.FC = () => {
             <Route path="/members" element={<MembersPage />} />
             <Route path="/create-member" element={<CreateMemberPage />} />
             <Route path="/import-members" element={isManagerOrAdmin ? <ImportMembersPage /> : <AccessDenied />} />
+            <Route path="/scan-qr" element={<ScanQRPage />} />
             <Route path="/manage-points" element={<PointsManagementPage />} />
             <Route path="/create-coupon" element={isManagerOrAdmin ? <CreateCouponPage /> : <AccessDenied />} />
             <Route path="/use-coupon" element={<UseCouponPage />} />

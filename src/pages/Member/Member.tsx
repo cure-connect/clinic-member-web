@@ -99,36 +99,70 @@ const MembersPage: React.FC = () => {
               </tbody>
             </table>
           </div>
-
           <div className="md:hidden space-y-3">
-            {filteredMembers.map(member => (
-              <div key={member.userid} className="bg-white p-4 rounded-lg shadow flex flex-col gap-2">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <p className="font-medium text-gray-800">{member.title} {member.firstname} {member.lastname}</p>
-                    <p className="text-gray-500 text-sm">{member.userid} • {member.mobile_no}</p>
-                    <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs mt-1 inline-block">{member.role}</span>
-                  </div>
-                  <div className="flex flex-col gap-2">
-                    <button onClick={() => setSelectedMember(member)} className="text-blue-600 hover:text-blue-900 p-2 rounded-lg">
-                      <Eye className="w-6 h-6" />
-                    </button>
-                    <button className="text-yellow-600 hover:text-yellow-900 p-2 rounded-lg">
-                      <Edit className="w-6 h-6" />
-                    </button>
-                    <button className="text-red-600 hover:text-red-900 p-2 rounded-lg">
-                      <Trash2 className="w-6 h-6" />
-                    </button>
-                    <button onClick={() => setCurrentPage('print-card')} className="text-green-600 hover:text-green-900 p-2 rounded-lg">
-                      <Printer className="w-6 h-6" />
-                    </button>
-                  </div>
+            {filteredMembers.map((member) => (
+              <div
+                key={member.userid}
+                className="bg-white p-4 rounded-lg shadow flex flex-col gap-3"
+              >
+                <div className="text-sm text-gray-600">
+                  <span className="text-gray-400">ชื่อ - นามสกุล: </span>
+                  <span className="font-medium text-gray-800">
+                    {member.title} {member.firstname} {member.lastname}
+                  </span>
                 </div>
-                <div className="text-gray-500 text-xs">{member.created_by}</div>
-                <div className="text-gray-500 text-xs">{new Date(member.created_at).toLocaleDateString('th-TH')}</div>
+
+                <div className="text-sm text-gray-600">
+                  <span className="text-gray-400">รหัสสมาชิก: </span>
+                  {member.userid}
+                </div>
+
+                <div className="text-sm text-gray-600">
+                  <span className="text-gray-400">เบอร์โทรศัพท์: </span>
+                  {member.mobile_no}
+                </div>
+
+                <div className="text-sm text-gray-600">
+                  <span className="text-gray-400">สิทธิ์การใช้งาน: </span>
+                  <span className="bg-blue-100 text-blue-800 px-2 py-0.5 rounded text-xs">
+                    {member.role}
+                  </span>
+                </div>
+
+                <div className="text-sm text-gray-600">
+                  <span className="text-gray-400">ผู้สร้าง: </span>
+                  {member.created_by}
+                </div>
+
+                <div className="text-sm text-gray-600">
+                  <span className="text-gray-400">วันที่สร้าง: </span>
+                  {new Date(member.created_at).toLocaleDateString("th-TH")}
+                </div>
+
+                <div className="flex justify-around border-t pt-3">
+                  <button
+                    onClick={() => setSelectedMember(member)}
+                    className="p-2 rounded-full hover:bg-blue-100 text-blue-600"
+                  >
+                    <Eye className="w-5 h-5" />
+                  </button>
+                  <button className="p-2 rounded-full hover:bg-yellow-100 text-yellow-600">
+                    <Edit className="w-5 h-5" />
+                  </button>
+                  <button className="p-2 rounded-full hover:bg-red-100 text-red-600">
+                    <Trash2 className="w-5 h-5" />
+                  </button>
+                  <button
+                    onClick={() => setCurrentPage("print-card")}
+                    className="p-2 rounded-full hover:bg-green-100 text-green-600"
+                  >
+                    <Printer className="w-5 h-5" />
+                  </button>
+                </div>
               </div>
             ))}
           </div>
+
         </>
       )}
 
