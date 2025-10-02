@@ -25,7 +25,6 @@ const PointsManagementPage: React.FC = () => {
           });
           if (!resMe.ok) throw new Error('โหลดข้อมูลผู้ใช้งานไม่สำเร็จ');
           const dataMe = await resMe.json();
-          console.log('datame', dataMe)
           setCurrentUser(dataMe.username);
         }
       } catch (err) {
@@ -107,47 +106,31 @@ const PointsManagementPage: React.FC = () => {
             </span>
           </div>
 
-          <div className="flex items-center justify-between">
-            <span className="font-medium">แต้มที่รอการอัปเดต</span>
-            <span className="text-lg font-bold text-orange-600">
-              {pendingPoints >= 0 ? `+${pendingPoints}` : pendingPoints} แต้ม
-            </span>
-          </div>
-
-          <div className="flex items-center justify-center gap-6">
-            <button
-              onClick={() => setPendingPoints(prev => prev - 10)}
-              className="p-3 bg-red-500 text-white rounded-full hover:bg-red-600 transition"
-            >
-              <Minus className="w-6 h-6" />
-            </button>
-            <button
-              onClick={() => setPendingPoints(prev => prev + 10)}
-              className="p-3 bg-green-500 text-white rounded-full hover:bg-green-600 transition"
-            >
-              <Plus className="w-6 h-6" />
-            </button>
-          </div>
-
-          <div className="flex flex-wrap gap-2 justify-center">
-            {[-10, -5, -1].map(amount => (
+          <div className="flex flex-col items-center justify-center gap-4">
+            {/* ปุ่ม + และ - เพิ่มทีละ 1 */}
+            <div className="flex items-center gap-6">
               <button
-                key={amount}
-                onClick={() => setPendingPoints(prev => prev + amount)}
-                className="px-3 py-1 bg-red-100 text-red-700 rounded hover:bg-red-200"
+                onClick={() => setPendingPoints(prev => prev - 1)}
+                className="p-3 bg-red-500 text-white rounded-full hover:bg-red-600 transition"
               >
-                {amount}
+                <Minus className="w-6 h-6" />
               </button>
-            ))}
-            {[1, 5, 10, 20].map(amount => (
+
+              <span
+                className={`text-2xl font-bold ${
+                  pendingPoints > 0 ? 'text-green-600' : pendingPoints < 0 ? 'text-red-600' : 'text-gray-600'
+                }`}
+              >
+                {pendingPoints > 0 ? `+${pendingPoints}` : pendingPoints}
+              </span>
+
               <button
-                key={amount}
-                onClick={() => setPendingPoints(prev => prev + amount)}
-                className="px-3 py-1 bg-green-100 text-green-700 rounded hover:bg-green-200"
+                onClick={() => setPendingPoints(prev => prev + 1)}
+                className="p-3 bg-green-500 text-white rounded-full hover:bg-green-600 transition"
               >
-                +{amount}
+                <Plus className="w-6 h-6" />
               </button>
-            ))}
+            </div>
           </div>
 
           <div className="flex justify-end">

@@ -1,14 +1,34 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Eye, Edit, Trash2, Printer } from 'lucide-react';
+import { Search, Eye, Edit, Trash2, Printer, Plus, X } from 'lucide-react';
 import type { Member, PageType } from '../../types/index.tsx';
 import MemberCard from '../../components/UI/MemberCard.tsx';
+
+interface NewMember {
+  title: string;
+  firstname: string;
+  lastname: string;
+  mobile_no: string;
+  created_by: string;
+  linePermission: boolean;
+}
 
 const MembersPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [members, setMembers] = useState<Member[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [selectedMember, setSelectedMember] = useState<Member | null>(null);
-  const [_, setCurrentPage] = useState<PageType>('members');
+  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+
+  const [newMember, setNewMember] = useState<NewMember>({
+    title: '',
+    firstname: '',
+    lastname: '',
+    mobile_no: '',
+    created_by: '',
+    linePermission: false
+  });
+
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
   useEffect(() => {
     const fetchMembers = async () => {
@@ -32,10 +52,76 @@ const MembersPage: React.FC = () => {
     member.mobile_no.includes(searchTerm)
   );
 
+  const user = JSON.parse(localStorage.getItem("clinicUser") || "{}");
+  console.log('user', user)
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>): Promise<void> => {
+    e.preventDefault();
+    setIsLoading(true);
+
+    try {
+      const payload = {
+        ...newMember,
+        created_by: user.username || "admin",
+      };
+
+      const response = await fetch('http://localhost:8888/api/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        throw new Error('ไม่สามารถสร้างสมาชิกได้');
+      }
+
+      await response.json();
+
+      setNewMember({
+        title: '',
+        firstname: '',
+        lastname: '',
+        mobile_no: '',
+        created_by: '',
+        linePermission: false
+      });
+
+      alert('สร้างสมาชิกเรียบร้อยแล้ว');
+      setIsModalOpen(false);
+      window.location.reload();
+    } catch (err: any) {
+      alert(err.message || 'เกิดข้อผิดพลาด กรุณาลองใหม่');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+
+  const handleInputChange = (field: keyof NewMember) => (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ): void => {
+    const value = field === 'linePermission' ? (e.target as HTMLInputElement).checked : e.target.value;
+    setNewMember(prev => ({ ...prev, [field]: value }));
+  };
+
+  function setCurrentPage(arg0: string): void {
+    throw new Error('Function not implemented.');
+  }
+
   return (
     <div className="space-y-4 p-4 sm:p-6">
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 sm:gap-0">
-        <h2 className="text-xl font-semibold text-gray-800">จัดการข้อมูลสมาชิก</h2>
+        <div className="flex items-center gap-3">
+          <h2 className="text-xl font-semibold text-gray-800">จัดการข้อมูลสมาชิก</h2>
+          <button
+            onClick={() => setIsModalOpen(true)}
+            className="px-3 py-2 text-sm sm:text-base bg-blue-500 hover:bg-blue-600 text-white rounded-lg shadow flex items-center gap-2"
+          >
+            <Plus className="w-4 h-4" />
+            เพิ่มสมาชิก
+          </button>
+        </div>
+
         <div className="relative w-full sm:w-64">
           <Search className="absolute left-3 top-3 w-4 h-4 text-gray-400" />
           <input
@@ -207,10 +293,109 @@ const MembersPage: React.FC = () => {
         </>
       )}
 
+      {isModalOpen && (
+        <div className="fixed inset-0 flex items-center justify-center z-50">
+          <div className="absolute inset-0 bg-black opacity-50" onClick={() => setIsModalOpen(false)}></div>
+          <div className="relative bg-white rounded-lg shadow-lg max-w-lg w-full p-6 z-50">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-semibold text-gray-800">สร้างสมาชิกใหม่</h2>
+              <button onClick={() => setIsModalOpen(false)} className="text-gray-500 hover:text-gray-700">
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">คำนำหน้า</label>
+                <select
+                  required
+                  className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  value={newMember.title}
+                  onChange={handleInputChange('title')}
+                >
+                  <option value="">-- เลือกคำนำหน้า --</option>
+                  <option value="นาย">นาย</option>
+                  <option value="นาง">นาง</option>
+                  <option value="นางสาว">นางสาว</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">ชื่อ</label>
+                <input
+                  type="text"
+                  required
+                  className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  value={newMember.firstname}
+                  onChange={handleInputChange('firstname')}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">นามสกุล</label>
+                <input
+                  type="text"
+                  required
+                  className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  value={newMember.lastname}
+                  onChange={handleInputChange('lastname')}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">เบอร์โทรศัพท์</label>
+                <input
+                  type="tel"
+                  required
+                  className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  value={newMember.mobile_no}
+                  onChange={handleInputChange('mobile_no')}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">สร้างโดย</label>
+                <input
+                  type="text"
+                  className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  value={newMember.created_by}
+                  onChange={handleInputChange('created_by')}
+                />
+              </div>
+
+              <div className="flex items-center">
+                <input
+                  type="checkbox"
+                  id="linePermission"
+                  className="mr-2"
+                  checked={newMember.linePermission}
+                  onChange={handleInputChange('linePermission')}
+                />
+                <label htmlFor="linePermission" className="text-sm text-gray-700">
+                  ยินยอมให้เก็บข้อมูลในระบบ LINE
+                </label>
+              </div>
+
+              <div className="flex gap-4">
+                <button
+                  type="submit"
+                  disabled={isLoading}
+                  className={`flex items-center gap-2 px-4 py-2 text-white rounded-lg ${isLoading ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-500 hover:bg-blue-600'
+                    }`}
+                >
+                  <Plus className="w-4 h-4" />
+                  {isLoading ? 'กำลังสร้าง...' : 'สร้างสมาชิก'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
       {selectedMember && (
-        <div className="fixed inset-0 flex items-center justify-center z-50 pointer-events-none">
-          <div className="absolute inset-0 bg-black opacity-50"></div>
-          <div className="relative bg-white p-6 rounded-lg max-w-md w-full mx-4 pointer-events-auto shadow-lg">
+        <div className="fixed inset-0 flex items-center justify-center z-50">
+          <div className="absolute inset-0 bg-black opacity-50" onClick={() => setSelectedMember(null)}></div>
+          <div className="relative bg-white p-6 rounded-lg max-w-md w-full mx-4 shadow-lg">
             <h3 className="text-lg font-semibold mb-4">บัตรสมาชิก</h3>
             <MemberCard member={selectedMember} />
             <div className="mt-4 flex justify-end">
