@@ -19,8 +19,8 @@ const Sidebar: React.FC<SidebarProps> = ({ user }) => {
   const navigationItems: NavigationItem[] = [
     { id: 'dashboard', label: 'Dashboard', icon: Users, roles: ['admin', 'manager'] },
     { id: 'members', label: 'จัดการสมาชิก', icon: Users, roles: ['admin', 'manager'] },
-    { id: 'create-member', label: 'สร้างสมาชิก', icon: UserPlus, roles: ['admin', 'manager'] },
-    { id: 'import-members', label: 'นำเข้าข้อมูล', icon: Upload, roles: ['admin', 'manager'] },
+    // { id: 'create-member', label: 'สร้างสมาชิก', icon: UserPlus, roles: ['admin', 'manager'] },
+    // { id: 'import-members', label: 'นำเข้าข้อมูล', icon: Upload, roles: ['admin', 'manager'] },
     { id: 'scan-qr', label: 'สแกน QR', icon: Scan, roles: ['admin', 'manager'] },
     { id: 'manage-points', label: 'จัดการคะแนน', icon: Star, roles: ['admin', 'manager'] },
     { id: 'create-coupon', label: 'สร้างคูปอง', icon: Gift, roles: ['admin', 'manager'] },

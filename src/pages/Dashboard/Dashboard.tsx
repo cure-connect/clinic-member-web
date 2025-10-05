@@ -4,8 +4,9 @@ import { Users, Star, Gift, FileText } from 'lucide-react';
 interface Member {
   userid: string;
   firstname: string;
+  lastname: string;
   mobile_no: string;
-  points?: number;
+  point?: number;
 }
 
 interface Coupon {
@@ -88,7 +89,7 @@ const DashboardPage: React.FC = () => {
           />
           <StatsCard 
             title="คะแนนรวม" 
-            value={members.reduce((sum, m) => sum + (m.points ?? 0), 0)} 
+            value={members.reduce((sum, m) => sum + (m.point ?? 0), 0)} 
             icon={Star} 
             color="yellow" 
           />
@@ -118,14 +119,14 @@ const DashboardPage: React.FC = () => {
               >
                 <div className="flex-1 min-w-0">
                   <p className="font-medium text-gray-800 text-sm sm:text-base truncate">
-                    {member.firstname}
+                    {member.firstname} {member.lastname}
                   </p>
                   <p className="text-xs sm:text-sm text-gray-600 mt-0.5">
                     {member.userid} • {member.mobile_no}
                   </p>
                 </div>
                 <span className="bg-blue-100 text-blue-800 px-3 py-1.5 rounded text-xs sm:text-sm font-medium self-start sm:self-auto whitespace-nowrap">
-                  {(member.points ?? 0).toLocaleString()} แต้ม
+                  {(member.point ?? 0).toLocaleString()} แต้ม
                 </span>
               </div>
             ))}

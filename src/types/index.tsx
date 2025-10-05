@@ -12,7 +12,7 @@ export interface Member {
   role: string;
   created_by: string;
   created_at: string;
-  points: number;
+  point: number;
   joinDate: string;
   qrCode: string;
 }

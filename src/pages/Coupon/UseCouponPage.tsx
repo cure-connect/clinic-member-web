@@ -6,10 +6,13 @@ const UseCouponPage: React.FC = () => {
   const [coupons, setCoupons] = useState<Coupon[]>([]);
   const [selectedMemberId, setSelectedMemberId] = useState<string>('');
 
-  const selectedMember = members.find(m => m.userid === selectedMemberId);
-  const availableCoupons = coupons.filter(
-    coupon => selectedMember && selectedMember.points >= coupon.point_require
+  const selectedMember = members.find(
+    (m) => String(m.userid) === String(selectedMemberId)
   );
+
+  const availableCoupons = selectedMember
+    ? coupons.filter(coupon => selectedMember.point >= coupon.point_require)
+    : coupons;
 
   useEffect(() => {
     const fetchMembers = async () => {
@@ -39,13 +42,20 @@ const UseCouponPage: React.FC = () => {
   }, []);
 
   const useCoupon = (coupon: Coupon): void => {
-    if (selectedMember && selectedMember.points >= coupon.point_require) {
+    if (!selectedMember) {
+      alert('กรุณาเลือกสมาชิกก่อนใช้คูปอง');
+      return;
+    }
+
+    if (selectedMember.point >= coupon.point_require) {
       setMembers(members.map(member =>
-        member.userid === selectedMemberId
-          ? { ...member, points: member.points - coupon.point_require }
+        String(member.userid) === String(selectedMemberId)
+          ? { ...member, point: member.point - coupon.point_require }
           : member
       ));
       alert(`ใช้คูปอง "${coupon.title}" เรียบร้อยแล้ว`);
+    } else {
+      alert('แต้มไม่เพียงพอในการใช้คูปองนี้');
     }
   };
 
@@ -64,44 +74,59 @@ const UseCouponPage: React.FC = () => {
             <option value="">เลือกสมาชิก</option>
             {members.map(member => (
               <option key={member.userid} value={member.userid}>
-                {member.firstname} ({member.userid}) - {member.points} แต้ม
+                {member.firstname} {member.lastname} ({member.userid}) - {member.point} แต้ม
               </option>
             ))}
           </select>
         </div>
 
-        {selectedMember && (
-          <div>
-            <h3 className="text-lg font-medium text-gray-800 mb-4">
-              คูปองที่ใช้ได้สำหรับ {selectedMember.firstname} ({selectedMember.points} แต้ม)
-            </h3>
-            
-            {availableCoupons.length === 0 ? (
-              <p className="text-gray-600">ไม่มีคูปองที่สามารถใช้ได้</p>
-            ) : (
-              <div className="grid gap-4">
-                {availableCoupons.map(coupon => (
-                  <div key={coupon.rewardid} className="border rounded-lg p-4 flex justify-between items-center">
-                    <div>
-                      <h4 className="font-medium text-gray-800">{coupon.title}</h4>
-                      <p className="text-sm text-gray-600">{coupon.description}</p>
-                      <p className="text-sm text-blue-600">ใช้ {coupon.point_require} แต้ม</p>
-                      {coupon.end_date && (
-                        <p className="text-xs text-gray-500">หมดอายุ: {coupon.end_date instanceof Date ? coupon.end_date.toLocaleDateString() : coupon.end_date}</p>
-                      )}
-                    </div>
-                    <button
-                      onClick={() => useCoupon(coupon)}
-                      className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600"
-                    >
-                      ใช้คูปอง
-                    </button>
+        <div>
+          <h3 className="text-lg font-medium text-gray-800 mb-4">
+            {selectedMember
+              ? `คูปองที่ใช้ได้สำหรับ ${selectedMember.firstname} (${selectedMember.point} แต้ม)`
+              : 'รายการคูปองทั้งหมด'}
+          </h3>
+
+          {availableCoupons.length === 0 ? (
+            <p className="text-gray-600">ไม่มีคูปองที่สามารถใช้ได้</p>
+          ) : (
+            <div className="grid gap-4">
+              {availableCoupons.map(coupon => (
+                <div
+                  key={coupon.rewardid}
+                  className="border rounded-xl p-4 flex justify-between items-center hover:bg-gray-50 transition"
+                >
+                  <div>
+                    <h4 className="font-medium text-gray-800">{coupon.title}</h4>
+                    <p className="text-sm text-gray-600">{coupon.description}</p>
+                    <p className="text-sm text-blue-600 font-semibold mt-1">
+                      ใช้ {coupon.point_require} แต้ม
+                    </p>
+                    {coupon.end_date && (
+                      <p className="text-xs text-gray-500 mt-1">
+                        หมดอายุ: {coupon.end_date instanceof Date
+                          ? coupon.end_date.toLocaleDateString()
+                          : coupon.end_date}
+                      </p>
+                    )}
                   </div>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
+                  <button
+                    onClick={() => useCoupon(coupon)}
+                    className={`px-4 py-2 rounded-lg text-white font-medium transition ${
+                      selectedMember
+                        ? selectedMember.point >= coupon.point_require
+                          ? 'bg-green-500 hover:bg-green-600'
+                          : 'bg-gray-400 cursor-not-allowed'
+                        : 'bg-blue-500 hover:bg-blue-600'
+                    }`}
+                  >
+                    {selectedMember ? 'ใช้คูปอง' : 'ดูรายละเอียด'}
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

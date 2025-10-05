@@ -57,7 +57,7 @@ const PointsManagementPage: React.FC = () => {
       setMembers(prev =>
         prev.map(m =>
           String(m.userid) === String(selectedMemberId)
-            ? { ...m, points: Math.max(0, (m.points || 0) + pendingPoints) }
+            ? { ...m, points: Math.max(0, (m.point || 0) + pendingPoints) }
             : m
         )
       );
@@ -91,7 +91,7 @@ const PointsManagementPage: React.FC = () => {
           <option value="">-- เลือกสมาชิก --</option>
           {members.map(m => (
             <option key={m.userid} value={String(m.userid)}>
-              {m.firstname} {m.lastname} - {m.points ?? 0} แต้ม
+              {m.firstname} {m.lastname} - {m.point ?? 0} แต้ม
             </option>
           ))}
         </select>
@@ -102,12 +102,11 @@ const PointsManagementPage: React.FC = () => {
           <div className="flex items-center justify-between">
             <span className="font-medium">คะแนนปัจจุบัน</span>
             <span className="text-lg font-bold text-blue-600">
-              {selectedMember.points ?? 0} แต้ม
+              {selectedMember.point ?? 0} แต้ม
             </span>
           </div>
 
           <div className="flex flex-col items-center justify-center gap-4">
-            {/* ปุ่ม + และ - เพิ่มทีละ 1 */}
             <div className="flex items-center gap-6">
               <button
                 onClick={() => setPendingPoints(prev => prev - 1)}
