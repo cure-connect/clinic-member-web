@@ -11,7 +11,7 @@ const UseCouponPage: React.FC = () => {
   );
 
   const availableCoupons = selectedMember
-    ? coupons.filter(coupon => selectedMember.point >= coupon.point_require)
+    ? coupons.filter((coupon) => selectedMember.point >= coupon.point_require)
     : coupons;
 
   useEffect(() => {
@@ -41,21 +41,48 @@ const UseCouponPage: React.FC = () => {
     fetchCoupons();
   }, []);
 
-  const useCoupon = (coupon: Coupon): void => {
+  const useCoupon = async (coupon: Coupon): Promise<void> => {
     if (!selectedMember) {
       alert('กรุณาเลือกสมาชิกก่อนใช้คูปอง');
       return;
     }
 
-    if (selectedMember.point >= coupon.point_require) {
-      setMembers(members.map(member =>
-        String(member.userid) === String(selectedMemberId)
-          ? { ...member, point: member.point - coupon.point_require }
-          : member
-      ));
-      alert(`ใช้คูปอง "${coupon.title}" เรียบร้อยแล้ว`);
-    } else {
+    if (selectedMember.point < coupon.point_require) {
       alert('แต้มไม่เพียงพอในการใช้คูปองนี้');
+      return;
+    }
+
+    try {
+      const body = {
+        userid: selectedMember.userid,
+        rewardid: coupon.rewardid,
+        point_used: coupon.point_require,
+        used_at: new Date().toISOString(),
+        status: 'used',
+      };
+
+      const res = await fetch('http://localhost:8888/api/rewardused', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(body),
+      });
+
+      if (!res.ok) throw new Error('Failed to record coupon usage');
+
+      setMembers((prev) =>
+        prev.map((member) =>
+          String(member.userid) === String(selectedMemberId)
+            ? { ...member, point: member.point - coupon.point_require }
+            : member
+        )
+      );
+
+      alert(`ใช้คูปอง "${coupon.title}" เรียบร้อยแล้ว`);
+    } catch (err) {
+      console.error('Error using coupon:', err);
+      alert('เกิดข้อผิดพลาดในการบันทึกการใช้คูปอง');
     }
   };
 
@@ -63,18 +90,21 @@ const UseCouponPage: React.FC = () => {
     <div className="space-y-6">
       <div className="bg-white rounded-lg shadow border p-6">
         <h2 className="text-xl font-semibold text-gray-800 mb-6">ใช้คูปอง</h2>
-        
+
         <div className="mb-6">
-          <label className="block text-sm font-medium text-gray-700 mb-2">เลือกสมาชิก</label>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            เลือกสมาชิก
+          </label>
           <select
             className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             value={selectedMemberId}
             onChange={(e) => setSelectedMemberId(e.target.value)}
           >
             <option value="">เลือกสมาชิก</option>
-            {members.map(member => (
+            {members.map((member) => (
               <option key={member.userid} value={member.userid}>
-                {member.firstname} {member.lastname} ({member.userid}) - {member.point} แต้ม
+                {member.firstname} {member.lastname} ({member.userid}) -{' '}
+                {member.point} แต้ม
               </option>
             ))}
           </select>
@@ -91,7 +121,7 @@ const UseCouponPage: React.FC = () => {
             <p className="text-gray-600">ไม่มีคูปองที่สามารถใช้ได้</p>
           ) : (
             <div className="grid gap-4">
-              {availableCoupons.map(coupon => (
+              {availableCoupons.map((coupon) => (
                 <div
                   key={coupon.rewardid}
                   className="border rounded-xl p-4 flex justify-between items-center hover:bg-gray-50 transition"
@@ -104,7 +134,8 @@ const UseCouponPage: React.FC = () => {
                     </p>
                     {coupon.end_date && (
                       <p className="text-xs text-gray-500 mt-1">
-                        หมดอายุ: {coupon.end_date instanceof Date
+                        หมดอายุ:{' '}
+                        {coupon.end_date instanceof Date
                           ? coupon.end_date.toLocaleDateString()
                           : coupon.end_date}
                       </p>
