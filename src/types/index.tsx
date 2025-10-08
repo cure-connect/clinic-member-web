@@ -14,7 +14,7 @@ export interface Member {
   created_at: string;
   point: number;
   joinDate: string;
-  qrCode: string;
+  qrcode: string;
 }
 
 export interface Coupon {

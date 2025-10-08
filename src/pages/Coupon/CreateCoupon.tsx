@@ -57,7 +57,6 @@ const CreateCouponPage: React.FC = () => {
       alert('สร้างคูปองเรียบร้อยแล้ว!');
       console.log('✅ Reward created:', data);
 
-      // reset form
       setNewReward({
         title: '',
         description: '',
