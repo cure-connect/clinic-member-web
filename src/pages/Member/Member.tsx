@@ -2,10 +2,6 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Search, Eye, Edit, Trash2, Printer, Plus, X, Upload, Download } from 'lucide-react';
 import type { Member } from '../../types/index.tsx';
 import MemberCard from '../../components/UI/MemberCard.tsx';
-const html2canvasModule = await import('html2canvas');
-const html2canvas = html2canvasModule.default as unknown as (element: HTMLElement, options?: any) => Promise<HTMLCanvasElement>;
-
-
 
 interface NewMember {
   title: string;
@@ -35,6 +31,8 @@ const MembersPage: React.FC = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState<boolean>(false);
   const [editMember, setEditMember] = useState<{ userid: number; firstname: string; lastname: string; mobile_no: string } | null>(null);
+
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   useEffect(() => {
     const fetchMembers = async () => {
@@ -168,18 +166,55 @@ const MembersPage: React.FC = () => {
     setEditMember(prev => prev ? { ...prev, [field]: e.target.value } : null);
   };
 
-const handlePrintCard = async (member: Member): Promise<void> => {
-  try {
-    const container = document.createElement('div');
-    container.style.position = 'fixed';
-    container.style.left = '-9999px';
-    container.style.top = '-9999px';
-    document.body.appendChild(container);
+  const handleImportFile = async (): Promise<void> => {
+    if (!selectedFile) {
+      alert("กรุณาเลือกไฟล์ก่อน");
+      return;
+    }
 
-    const html2canvasModule = await import('html2canvas');
-    const html2canvas = (html2canvasModule.default as unknown) as (element: HTMLElement, options?: any) => Promise<HTMLCanvasElement>;
+    setIsLoading(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", selectedFile);
 
-    const cardHTML = `
+      const res = await fetch("http://localhost:8888/api/user/import", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!res.ok) {
+        const err = await res.json();
+        alert("เกิดข้อผิดพลาด: " + err.message);
+        return;
+      }
+
+      const data = await res.json();
+      alert(`นำเข้าข้อมูลสำเร็จ! จำนวนสมาชิก: ${data.data.length}`);
+      setIsImportModalOpen(false);
+      window.location.reload();
+    } catch (error) {
+      console.error("Error importing file:", error);
+      alert("เกิดข้อผิดพลาดในการนำเข้าข้อมูล");
+    } finally {
+      setIsLoading(false);
+      setSelectedFile(null);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
+
+
+  const handlePrintCard = async (member: Member): Promise<void> => {
+    try {
+      const container = document.createElement('div');
+      container.style.position = 'fixed';
+      container.style.left = '-9999px';
+      container.style.top = '-9999px';
+      document.body.appendChild(container);
+
+      const html2canvasModule = await import('html2canvas');
+      const html2canvas = (html2canvasModule.default as unknown) as (element: HTMLElement, options?: any) => Promise<HTMLCanvasElement>;
+
+      const cardHTML = `
       <div style="
         width: 10.5cm;
         height: 6.3cm;
@@ -265,43 +300,43 @@ const handlePrintCard = async (member: Member): Promise<void> => {
       </div>
     `;
 
-    container.innerHTML = cardHTML;
+      container.innerHTML = cardHTML;
 
-    const qrImage = container.querySelector('img');
-    if (qrImage) {
-      await new Promise((resolve) => {
-        qrImage.onload = resolve;
-        qrImage.onerror = resolve;
-      });
-    }
-
-    const canvas = await html2canvas(container, {
-      scale: 3,
-      backgroundColor: null,
-      logging: false,
-      useCORS: true,
-      allowTaint: true
-    });
-
-    document.body.removeChild(container);
-
-    canvas.toBlob((blob: Blob | null) => {
-      if (blob) {
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = `member-card-${member.userid}-${member.firstname}-${member.lastname}.png`;
-        link.click();
-        URL.revokeObjectURL(url);
-        alert('ดาวน์โหลดบัตรสมาชิกเรียบร้อยแล้ว');
+      const qrImage = container.querySelector('img');
+      if (qrImage) {
+        await new Promise((resolve) => {
+          qrImage.onload = resolve;
+          qrImage.onerror = resolve;
+        });
       }
-    }, 'image/png');
 
-  } catch (error) {
-    console.error('Error printing card:', error);
-    alert('ไม่สามารถพิมพ์บัตรได้ กรุณาลองใหม่');
-  }
-};
+      const canvas = await html2canvas(container, {
+        scale: 3,
+        backgroundColor: null,
+        logging: false,
+        useCORS: true,
+        allowTaint: true
+      });
+
+      document.body.removeChild(container);
+
+      canvas.toBlob((blob: Blob | null) => {
+        if (blob) {
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = `member-card-${member.userid}-${member.firstname}-${member.lastname}.png`;
+          link.click();
+          URL.revokeObjectURL(url);
+          alert('ดาวน์โหลดบัตรสมาชิกเรียบร้อยแล้ว');
+        }
+      }, 'image/png');
+
+    } catch (error) {
+      console.error('Error printing card:', error);
+      alert('ไม่สามารถพิมพ์บัตรได้ กรุณาลองใหม่');
+    }
+  };
 
 
 
@@ -564,25 +599,28 @@ const handlePrintCard = async (member: Member): Promise<void> => {
         </div>
       )}
 
+      {/* ✅ ส่วน modal import file ที่แก้ใหม่ */}
       {isImportModalOpen && (
         <div className="fixed inset-0 flex items-center justify-center z-50">
-          <div
-            className="absolute inset-0 bg-black opacity-50"
-            onClick={() => setIsImportModalOpen(false)}
-          ></div>
+          <div className="absolute inset-0 bg-black opacity-50" onClick={() => setIsImportModalOpen(false)}></div>
           <div className="relative bg-white rounded-lg shadow-lg max-w-lg w-full p-6 z-50">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-semibold text-gray-800">นำเข้าข้อมูลสมาชิก</h2>
-              <button
-                onClick={() => setIsImportModalOpen(false)}
-                className="text-gray-500 hover:text-gray-700"
-              >
+              <button onClick={() => setIsImportModalOpen(false)} className="text-gray-500 hover:text-gray-700">
                 <X className="w-6 h-6" />
               </button>
             </div>
 
             <div className="space-y-6">
-              <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
+              <div
+                className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center"
+                onDragOver={(e) => e.preventDefault()}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  const file = e.dataTransfer.files?.[0];
+                  if (file) setSelectedFile(file);
+                }}
+              >
                 <Upload className="mx-auto w-12 h-12 text-gray-400 mb-4" />
                 <p className="text-gray-600 mb-4">ลากไฟล์มาวางที่นี่ หรือคลิกเพื่อเลือกไฟล์</p>
                 <input
@@ -590,7 +628,10 @@ const handlePrintCard = async (member: Member): Promise<void> => {
                   ref={fileInputRef}
                   className="hidden"
                   accept=".csv,.xlsx,.xls"
-                  onChange={handleFileUpload}
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) setSelectedFile(file);
+                  }}
                 />
                 <button
                   onClick={() => fileInputRef.current?.click()}
@@ -598,7 +639,23 @@ const handlePrintCard = async (member: Member): Promise<void> => {
                 >
                   เลือกไฟล์
                 </button>
+
+                {/* ✅ แสดงชื่อไฟล์ */}
+                {selectedFile && (
+                  <div className="mt-4 text-sm text-gray-700">
+                    📄 <strong>{selectedFile.name}</strong>
+                  </div>
+                )}
               </div>
+
+              {/* ✅ ปุ่มยืนยัน */}
+              <button
+                onClick={handleImportFile}
+                disabled={!selectedFile || isLoading}
+                className={`w-full flex justify-center items-center gap-2 px-4 py-2 rounded-lg text-white ${!selectedFile ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-500 hover:bg-green-600'}`}
+              >
+                {isLoading ? 'กำลังนำเข้า...' : 'ยืนยันนำเข้า'}
+              </button>
 
               <div className="bg-gray-50 p-4 rounded-lg">
                 <h3 className="font-medium text-gray-800 mb-2">ดาวน์โหลดแม่แบบ</h3>
@@ -606,7 +663,15 @@ const handlePrintCard = async (member: Member): Promise<void> => {
                   ดาวน์โหลดแม่แบบไฟล์ Excel เพื่อกรอกข้อมูลสมาชิกและอัพโหลดกลับเข้าระบบ
                 </p>
                 <button
-                  onClick={downloadTemplate}
+                  onClick={() => {
+                    const csvContent =
+                      "title,firstname,lastname,mobile_no,role\nนาย,สมชาย,ใจดี,081-234-5678,user\nนาง,สมหญิง,รักสุขภาพ,082-345-6789,user";
+                    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                    const link = document.createElement('a');
+                    link.href = URL.createObjectURL(blob);
+                    link.download = 'member_template.csv';
+                    link.click();
+                  }}
                   className="flex items-center gap-2 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600"
                 >
                   <Download className="w-4 h-4" />

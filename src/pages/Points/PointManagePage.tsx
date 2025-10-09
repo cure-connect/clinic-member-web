@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Plus, Minus, QrCode, ArrowLeft, Search } from "lucide-react";
-import type { Member } from "@/types/index.tsx";
+import type { Member, Coupon } from "@/types/index.tsx";
 
 interface LocationState {
   userid: string | number;
@@ -20,12 +20,15 @@ const PointsManagementPage: React.FC = () => {
   const isFromQR = state?.fromQR || false;
 
   const [members, setMembers] = useState<Member[]>([]);
+  const [coupons, setCoupons] = useState<Coupon[]>([]);
   const [selectedMemberId, setSelectedMemberId] = useState<string>(
     scannedUser?.userid ? String(scannedUser.userid) : ""
   );
   const [loading, setLoading] = useState<boolean>(true);
   const [pendingPoints, setPendingPoints] = useState<number>(0);
   const [confirmModal, setConfirmModal] = useState<boolean>(false);
+  const [confirmCouponModal, setConfirmCouponModal] = useState<boolean>(false);
+  const [couponToUse, setCouponToUse] = useState<Coupon | null>(null);
   const [currentUser, setCurrentUser] = useState<string>("");
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [openDropdown, setOpenDropdown] = useState<boolean>(false);
@@ -39,8 +42,12 @@ const PointsManagementPage: React.FC = () => {
     const fetchData = async () => {
       try {
         const resMembers = await fetch("http://localhost:8888/api/user");
-        if (!resMembers.ok) throw new Error("โหลดข้อมูลสมาชิกไม่สำเร็จ");
+        const resCoupons = await fetch("http://localhost:8888/api/reward");
+        if (!resMembers.ok || !resCoupons.ok) throw new Error("โหลดข้อมูลไม่สำเร็จ");
+
         const dataMembers: Member[] = await resMembers.json();
+        const dataCoupons: Coupon[] = await resCoupons.json();
+        setCoupons(dataCoupons);
 
         let mergedMembers = dataMembers;
         if (scannedUser && !dataMembers.find(m => String(m.userid) === String(scannedUser.userid))) {
@@ -54,26 +61,12 @@ const PointsManagementPage: React.FC = () => {
             ...dataMembers,
           ];
         }
-
         setMembers(mergedMembers);
 
-        const token = localStorage.getItem("clinicToken");
-        if (token) {
-          const resMe = await fetch("http://localhost:8888/api/me", {
-            headers: { Authorization: `Bearer ${token}` },
-          });
-          if (resMe.status === 401) {
-            alert("เซสชันหมดอายุ กรุณาเข้าสู่ระบบใหม่");
-            redirectToLogin();
-            return;
-          }
-          const dataMe = await resMe.json();
-          if (dataMe?.error?.includes("expired") || dataMe?.message?.includes("expired")) {
-            alert("เซสชันหมดอายุ กรุณาเข้าสู่ระบบใหม่");
-            redirectToLogin();
-            return;
-          }
-          setCurrentUser(dataMe.username);
+        const storedUser = localStorage.getItem("clinicUser"); 
+        if (storedUser) {
+          const user = JSON.parse(storedUser);
+          setCurrentUser(user.username); 
         }
       } catch (err) {
         console.error(err);
@@ -82,8 +75,10 @@ const PointsManagementPage: React.FC = () => {
         setLoading(false);
       }
     };
+
     fetchData();
   }, [scannedUser]);
+
 
   const applyPoints = async () => {
     if (!selectedMemberId || pendingPoints === 0) return;
@@ -127,6 +122,63 @@ const PointsManagementPage: React.FC = () => {
     }
   };
 
+  const confirmUseCoupon = (coupon: Coupon) => {
+    setCouponToUse(coupon);
+    setConfirmCouponModal(true);
+  };
+
+  const useCoupon = async (): Promise<void> => {
+    if (!couponToUse) return;
+    const selectedMember = members.find(m => String(m.userid) === String(selectedMemberId));
+
+    if (!selectedMember) {
+      alert("กรุณาเลือกสมาชิกก่อนใช้คูปอง");
+      return;
+    }
+
+    if (selectedMember.point < couponToUse.point_require) {
+      alert("แต้มไม่เพียงพอในการใช้คูปองนี้");
+      return;
+    }
+
+    try {
+      const body = {
+        userid: selectedMember.userid,
+        rewardid: couponToUse.rewardid,
+        point_used: couponToUse.point_require,
+        created_by: currentUser,
+        used_at: new Date().toISOString(),
+        status: "used",
+      };
+
+      const res = await fetch("http://localhost:8888/api/rewardused", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(body),
+      });
+
+      if (!res.ok) throw new Error("Failed to record coupon usage");
+
+      setMembers(prev =>
+        prev.map(member =>
+          String(member.userid) === String(selectedMemberId)
+            ? { ...member, point: member.point - couponToUse.point_require }
+            : member
+        )
+      );
+
+      alert(`ใช้คูปอง "${couponToUse.title}" เรียบร้อยแล้ว`);
+    } catch (err) {
+      console.error("Error using coupon:", err);
+      alert("เกิดข้อผิดพลาดในการบันทึกการใช้คูปอง");
+    } finally {
+      setConfirmCouponModal(false);
+      setCouponToUse(null);
+    }
+  };
+
   const selectedMember: Member | null =
     members.find(m => String(m.userid) === String(selectedMemberId)) || null;
 
@@ -135,7 +187,12 @@ const PointsManagementPage: React.FC = () => {
     return fullName.includes(searchTerm.toLowerCase());
   });
 
-  if (loading) return <div className="p-6">กำลังโหลดข้อมูลสมาชิก...</div>;
+  const availableCoupons =
+    selectedMember && coupons.length > 0
+      ? coupons.filter(c => selectedMember.point >= c.point_require)
+      : [];
+
+  if (loading) return <div className="p-6">กำลังโหลดข้อมูล...</div>;
 
   return (
     <div className="p-6 max-w-2xl mx-auto space-y-6">
@@ -164,7 +221,7 @@ const PointsManagementPage: React.FC = () => {
         </div>
       )}
 
-      {/* ช่องค้นหาสมาชิก */}
+      {/* ช่องค้นหา */}
       <div className="relative">
         <label className="block mb-2 font-medium text-gray-700">ค้นหาสมาชิก</label>
         <div className="relative">
@@ -176,13 +233,11 @@ const PointsManagementPage: React.FC = () => {
             onChange={(e) => setSearchTerm(e.target.value)}
             onFocus={() => !isFromQR && setOpenDropdown(true)}
             disabled={isFromQR}
-            className={`w-full pl-10 pr-3 py-3 border rounded-lg bg-white focus:ring-2 focus:ring-blue-400 ${
-              isFromQR ? "bg-gray-100 cursor-not-allowed" : ""
-            }`}
+            className={`w-full pl-10 pr-3 py-3 border rounded-lg bg-white focus:ring-2 focus:ring-blue-400 ${isFromQR ? "bg-gray-100 cursor-not-allowed" : ""
+              }`}
           />
         </div>
 
-        {/* Dropdown แสดงผลลัพธ์การค้นหา */}
         {openDropdown && !isFromQR && (
           <div className="absolute z-10 mt-2 w-full bg-white border rounded-lg shadow max-h-60 overflow-y-auto">
             {filteredMembers.length > 0 ? (
@@ -195,11 +250,10 @@ const PointsManagementPage: React.FC = () => {
                     setOpenDropdown(false);
                     setPendingPoints(0);
                   }}
-                  className={`px-4 py-2 cursor-pointer hover:bg-blue-50 ${
-                    selectedMemberId === String(m.userid) ? "bg-blue-100" : ""
-                  }`}
+                  className={`px-4 py-2 cursor-pointer hover:bg-blue-50 ${selectedMemberId === String(m.userid) ? "bg-blue-100" : ""
+                    }`}
                 >
-                  {m.title ? m.title + " " : ""}{m.firstname} {m.lastname} ({m.point ?? 0} แต้ม)
+                  {m.firstname} {m.lastname} ({m.point ?? 0} แต้ม)
                 </div>
               ))
             ) : (
@@ -209,7 +263,6 @@ const PointsManagementPage: React.FC = () => {
         )}
       </div>
 
-      {/* แสดงข้อมูลสมาชิกที่เลือก */}
       {selectedMember && (
         <div className="bg-blue-50 p-6 rounded-lg shadow space-y-6">
           <div className="flex items-center justify-between">
@@ -225,7 +278,40 @@ const PointsManagementPage: React.FC = () => {
         </div>
       )}
 
-      {/* Modal ยืนยัน */}
+      {selectedMember && (
+        <div className="bg-white border rounded-xl p-6 shadow space-y-4">
+          <h3 className="text-lg font-semibold text-gray-800">
+            คูปองที่ใช้ได้สำหรับ {selectedMember.firstname} {selectedMember.lastname}
+          </h3>
+          {availableCoupons.length > 0 ? (
+            <div className="grid gap-4">
+              {availableCoupons.map((coupon) => (
+                <div
+                  key={coupon.rewardid}
+                  className="border rounded-lg p-4 flex justify-between items-center hover:bg-gray-50"
+                >
+                  <div>
+                    <h4 className="font-medium">{coupon.title}</h4>
+                    <p className="text-sm text-gray-600">{coupon.description}</p>
+                    <p className="text-sm text-blue-600 mt-1">
+                      ใช้ {coupon.point_require} แต้ม
+                    </p>
+                  </div>
+                  <button
+                    className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600"
+                    onClick={() => confirmUseCoupon(coupon)}
+                  >
+                    ใช้คูปอง
+                  </button>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-gray-500">ยังไม่มีคูปองที่สามารถใช้ได้</p>
+          )}
+        </div>
+      )}
+
       {confirmModal && selectedMember && (
         <div className="fixed inset-0 flex items-center justify-center bg-black/30 backdrop-blur-sm z-50">
           <div className="bg-white/90 backdrop-blur-md p-6 rounded-2xl shadow-xl max-w-sm w-full border border-white/40">
@@ -253,6 +339,40 @@ const PointsManagementPage: React.FC = () => {
                 className="flex-1 bg-blue-600 hover:bg-blue-700 text-white p-2 rounded-lg transition"
               >
                 ยืนยัน
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ✅ Modal ยืนยันใช้คูปอง */}
+      {confirmCouponModal && couponToUse && selectedMember && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black/30 backdrop-blur-sm z-50">
+          <div className="bg-white/90 backdrop-blur-md p-6 rounded-2xl shadow-xl max-w-sm w-full border border-white/40">
+            <h3 className="font-semibold mb-4 text-gray-800 text-lg">ยืนยันการใช้คูปอง</h3>
+            <p className="text-gray-700">
+              คุณต้องการใช้คูปอง{" "}
+              <span className="font-medium text-blue-600">{couponToUse.title}</span>{" "}
+              ซึ่งต้องใช้{" "}
+              <span className="font-medium text-red-600">{couponToUse.point_require}</span> แต้ม{" "}
+              กับ{" "}
+              <span className="font-medium">
+                {selectedMember.firstname} {selectedMember.lastname}
+              </span>{" "}
+              หรือไม่?
+            </p>
+            <div className="flex gap-3 mt-6">
+              <button
+                onClick={() => setConfirmCouponModal(false)}
+                className="flex-1 bg-gray-200 hover:bg-gray-300 p-2 rounded-lg transition"
+              >
+                ยกเลิก
+              </button>
+              <button
+                onClick={useCoupon}
+                className="flex-1 bg-green-600 hover:bg-green-700 text-white p-2 rounded-lg transition"
+              >
+                ยืนยันใช้
               </button>
             </div>
           </div>

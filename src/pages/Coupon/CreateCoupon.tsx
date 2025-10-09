@@ -1,13 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Plus } from 'lucide-react';
 
 interface NewReward {
   title: string;
   description: string;
-  point_require: number;
-  limit_per_user: number;
-  start_date: string;
-  end_date: string;
+  point_require: number | string;
+  limit_per_user: number | string;
+  start_date?: string;
+  end_date?: string;
   status_campaign: string;
   created_by: string;
 }
@@ -16,25 +16,39 @@ const CreateCouponPage: React.FC = () => {
   const [newReward, setNewReward] = useState<NewReward>({
     title: '',
     description: '',
-    point_require: 0,
-    limit_per_user: 0,
+    point_require: '',
+    limit_per_user: '',
     start_date: '',
     end_date: '',
     status_campaign: 'active',
-    created_by: 'earth'
+    created_by: ''
   });
 
   const [loading, setLoading] = useState(false);
 
+  useEffect(() => {
+    const userData = localStorage.getItem('clinicUser');
+    if (userData) {
+      const parsedUser = JSON.parse(userData);
+      setNewReward(prev => ({
+        ...prev,
+        created_by: parsedUser.username || 'unknown'
+      }));
+    }
+  }, []);
+
   const handleInputChange = (field: keyof NewReward) => (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
+    let value: string | number = e.target.value;
+
+    if (field === 'point_require' || field === 'limit_per_user') {
+      value = value.replace(/[^0-9]/g, '');
+    }
+
     setNewReward(prev => ({
       ...prev,
-      [field]:
-        field === 'point_require' || field === 'limit_per_user'
-          ? Number(e.target.value)
-          : e.target.value
+      [field]: value
     }));
   };
 
@@ -43,32 +57,38 @@ const CreateCouponPage: React.FC = () => {
     setLoading(true);
 
     try {
+      const body = {
+        ...newReward,
+        point_require: Number(newReward.point_require) || 0,
+        limit_per_user: Number(newReward.limit_per_user) || 0,
+      };
+
       const res = await fetch('http://localhost:8888/api/reward', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify(newReward)
+        body: JSON.stringify(body)
       });
 
       if (!res.ok) throw new Error('Failed to create reward');
       const data = await res.json();
 
       alert('สร้างคูปองเรียบร้อยแล้ว!');
-      console.log('✅ Reward created:', data);
+      console.log('Reward created:', data);
 
-      setNewReward({
+      setNewReward(prev => ({
+        ...prev,
         title: '',
         description: '',
-        point_require: 0,
-        limit_per_user: 0,
+        point_require: '',
+        limit_per_user: '',
         start_date: '',
         end_date: '',
         status_campaign: 'active',
-        created_by: 'earth'
-      });
+      }));
     } catch (error) {
-      console.error('❌ Error creating reward:', error);
+      console.error('Error creating reward:', error);
       alert('เกิดข้อผิดพลาดในการสร้างคูปอง');
     } finally {
       setLoading(false);
@@ -80,6 +100,7 @@ const CreateCouponPage: React.FC = () => {
       <h2 className="text-xl font-semibold text-gray-800 mb-6">สร้างคูปอง</h2>
 
       <form onSubmit={handleSubmit} className="space-y-4">
+        {/* ชื่อคูปอง */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">ชื่อคูปอง</label>
           <input
@@ -91,6 +112,7 @@ const CreateCouponPage: React.FC = () => {
           />
         </div>
 
+        {/* รายละเอียด */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">รายละเอียด</label>
           <textarea
@@ -102,13 +124,16 @@ const CreateCouponPage: React.FC = () => {
           />
         </div>
 
+        {/* คะแนนที่ต้องใช้ / จำนวนจำกัดต่อคน */}
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">คะแนนที่ต้องใช้</label>
             <input
-              type="number"
+              type="text"
+              inputMode="numeric"
+              pattern="[0-9]*"
+              placeholder="กรอกเฉพาะตัวเลข"
               required
-              min={1}
               className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               value={newReward.point_require}
               onChange={handleInputChange('point_require')}
@@ -118,9 +143,11 @@ const CreateCouponPage: React.FC = () => {
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">จำนวนที่จำกัดต่อคน</label>
             <input
-              type="number"
+              type="text"
+              inputMode="numeric"
+              pattern="[0-9]*"
+              placeholder="กรอกเฉพาะตัวเลข"
               required
-              min={1}
               className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               value={newReward.limit_per_user}
               onChange={handleInputChange('limit_per_user')}
@@ -128,12 +155,12 @@ const CreateCouponPage: React.FC = () => {
           </div>
         </div>
 
+        {/* วันเริ่มต้น / วันหมดอายุ (ไม่ required) */}
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">วันเริ่มต้น</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">วันเริ่มต้น (ไม่จำเป็น)</label>
             <input
               type="date"
-              required
               className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               value={newReward.start_date}
               onChange={handleInputChange('start_date')}
@@ -141,10 +168,9 @@ const CreateCouponPage: React.FC = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">วันหมดอายุ</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">วันหมดอายุ (ไม่จำเป็น)</label>
             <input
               type="date"
-              required
               className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               value={newReward.end_date}
               onChange={handleInputChange('end_date')}

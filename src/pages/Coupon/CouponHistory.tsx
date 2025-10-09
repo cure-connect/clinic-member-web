@@ -9,11 +9,13 @@ interface RewardHistory {
   points_to_used: number;
   start_date: string;
   end_date: string;
+  created_at: string;
 }
 
 const CouponHistoryPage: React.FC = () => {
   const [history, setHistory] = useState<RewardHistory[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     const fetchHistory = async () => {
@@ -33,6 +35,7 @@ const CouponHistoryPage: React.FC = () => {
   }, []);
 
   const formatDate = (dateString: string) => {
+    if (!dateString) return '-';
     const date = new Date(dateString);
     const day = date.getDate().toString().padStart(2, '0');
     const month = (date.getMonth() + 1).toString().padStart(2, '0');
@@ -40,51 +43,75 @@ const CouponHistoryPage: React.FC = () => {
     return `${day}/${month}/${year}`;
   };
 
+  const filteredHistory = history.filter((item) =>
+    `${item.firstname} ${item.lastname}`.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   if (loading) {
     return <p className="text-gray-500 text-center py-10">กำลังโหลดข้อมูล...</p>;
   }
 
   return (
-    <div className="max-w-5xl mx-auto p-6">
-      <h2 className="text-2xl font-bold text-gray-800 mb-8 text-center">
+    <div className="max-w-6xl mx-auto p-6">
+      <h2 className="text-3xl font-bold text-gray-800 mb-6 text-center">
         ประวัติการใช้คูปอง
       </h2>
 
-      {history.length > 0 ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {history.map((item) => (
-            <div
-              key={item.reward_used_id}
-              className="bg-white rounded-2xl shadow-md border border-gray-100 p-5 hover:shadow-lg transition-shadow duration-200"
-            >
-              <div className="flex justify-between items-start">
-                <h3 className="text-lg font-semibold text-gray-800">{item.title}</h3>
-                <span className="bg-red-100 text-red-700 px-2 py-1 rounded-full text-xs font-medium">
-                  -{item.points_to_used} แต้ม
-                </span>
-              </div>
+      <div className="mb-4 flex justify-end">
+        <input
+          type="text"
+          placeholder="ค้นหาชื่อผู้ใช้..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="px-4 py-2 border rounded-lg w-full sm:w-64 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+      </div>
 
-              <p className="text-sm text-gray-600 mt-1">{item.description}</p>
-
-              <div className="mt-4 border-t border-gray-100 pt-3 text-sm">
-                <p className="text-gray-700 font-medium">
-                  {item.firstname} {item.lastname}
-                </p>
-                <p className="text-gray-500 mt-1">
-                  ใช้เมื่อ: {formatDate(item.start_date)}
-                </p>
-                {item.end_date && (
-                  <p className="text-gray-400 text-xs">
-                    หมดอายุคูปอง: {formatDate(item.end_date)}
-                  </p>
-                )}
-              </div>
-            </div>
-          ))}
+      {filteredHistory.length > 0 ? (
+        <div className="overflow-x-auto shadow-lg rounded-lg border border-gray-200">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-blue-100">
+              <tr>
+                <th className="px-6 py-3 text-left text-sm font-semibold text-blue-900 uppercase tracking-wider">
+                  ชื่อคูปอง
+                </th>
+                <th className="px-6 py-3 text-left text-sm font-semibold text-blue-900 uppercase tracking-wider">
+                  รายละเอียด
+                </th>
+                <th className="px-6 py-3 text-center text-sm font-semibold text-blue-900 uppercase tracking-wider">
+                  คะแนนที่ใช้
+                </th>
+                <th className="px-6 py-3 text-left text-sm font-semibold text-blue-900 uppercase tracking-wider">
+                  ชื่อผู้ใช้
+                </th>
+                <th className="px-6 py-3 text-left text-sm font-semibold text-blue-900 uppercase tracking-wider">
+                  ใช้เมื่อ
+                </th>
+                <th className="px-6 py-3 text-left text-sm font-semibold text-blue-900 uppercase tracking-wider">
+                  หมดอายุ
+                </th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-100">
+              {filteredHistory.map((item, idx) => (
+                <tr
+                  key={item.reward_used_id}
+                  className={`${idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'} hover:bg-blue-50 transition`}
+                >
+                  <td className="px-6 py-4 text-gray-800 font-medium">{item.title}</td>
+                  <td className="px-6 py-4 text-gray-600">{item.description}</td>
+                  <td className="px-6 py-4 text-center text-red-600 font-bold">-{item.points_to_used}</td>
+                  <td className="px-6 py-4 text-gray-800">{item.firstname} {item.lastname}</td>
+                  <td className="px-6 py-4 text-gray-400">{formatDate(item.created_at)}</td>
+                  <td className="px-6 py-4 text-gray-400 text-sm">{item.end_date ? formatDate(item.end_date) : 'ไม่มีวันหมดอายุ'}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       ) : (
         <div className="text-center text-gray-500 py-16">
-          <p className="text-lg">ยังไม่มีประวัติการใช้คูปอง</p>
+          <p className="text-lg">ไม่พบข้อมูลตามการค้นหา</p>
         </div>
       )}
     </div>
