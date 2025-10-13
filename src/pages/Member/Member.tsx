@@ -34,6 +34,9 @@ const MembersPage: React.FC = () => {
 
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [memberToDelete, setMemberToDelete] = useState<Member | null>(null);
+
   useEffect(() => {
     const fetchMembers = async () => {
       try {
@@ -56,6 +59,34 @@ const MembersPage: React.FC = () => {
     member.userid?.toString().includes(searchTerm) ||
     member.mobile_no?.includes(searchTerm)
   );
+
+  const handleDeleteClick = (member: Member) => {
+    setMemberToDelete(member);
+    setShowDeleteModal(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!memberToDelete) return;
+
+    try {
+      const res = await fetch(`http://localhost:8888/api/users/${memberToDelete.userid}`, { method: "DELETE" });
+      const result = await res.json();
+
+      if (!res.ok) {
+        alert(result.message || "เกิดข้อผิดพลาดในการลบสมาชิก");
+        return;
+      }
+
+      setMembers((prev) => prev.filter((m) => m.userid !== memberToDelete.userid));
+      setShowDeleteModal(false);
+      setMemberToDelete(null);
+      alert("ลบสมาชิกเรียบร้อยแล้ว");
+      window.location.reload();
+    } catch (error) {
+      console.error("Error deleting member:", error);
+      alert("ไม่สามารถลบสมาชิกได้");
+    }
+  };
 
   const user = JSON.parse(localStorage.getItem("clinicUser") || "{}");
 
@@ -101,15 +132,6 @@ const MembersPage: React.FC = () => {
   ): void => {
     const value = field === 'linePermission' ? (e.target as HTMLInputElement).checked : e.target.value;
     setNewMember(prev => ({ ...prev, [field]: value }));
-  };
-
-  const downloadTemplate = (): void => {
-    const csvContent = "ชื่อ,เบอร์โทร,อีเมล\nสมชาย ใจดี,081-234-5678,somchai@email.com\nสมหญิง รักสุขภาพ,082-345-6789,somying@email.com";
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = 'member_template.csv';
-    link.click();
   };
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>): void => {
@@ -201,7 +223,6 @@ const MembersPage: React.FC = () => {
       if (fileInputRef.current) fileInputRef.current.value = "";
     }
   };
-
 
   const handlePrintCard = async (member: Member): Promise<void> => {
     try {
@@ -427,7 +448,10 @@ const MembersPage: React.FC = () => {
                         >
                           <Edit className="w-5 h-5 text-yellow-600" />
                         </button>
-                        <button className="p-2 rounded-lg hover:bg-red-200 transition">
+                        <button
+                          onClick={() => handleDeleteClick(member)}
+                          className="p-2 rounded-full hover:bg-red-100 transition-colors duration-200"
+                        >
                           <Trash2 className="w-5 h-5 text-red-600" />
                         </button>
                         <button
@@ -599,7 +623,53 @@ const MembersPage: React.FC = () => {
         </div>
       )}
 
-      {/* ✅ ส่วน modal import file ที่แก้ใหม่ */}
+            {showDeleteModal && memberToDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div
+            className="absolute inset-0 bg-black opacity-50"
+            onClick={() => setShowDeleteModal(false)}
+          ></div>
+
+          <div className="relative bg-white rounded-xl shadow-xl p-6 w-96 z-10">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-lg font-semibold text-gray-800">
+                ยืนยันการลบสมาชิก
+              </h2>
+              <button
+                onClick={() => setShowDeleteModal(false)}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <p className="text-gray-700 mb-6">
+              คุณแน่ใจหรือไม่ว่าต้องการลบสมาชิก  
+              <strong className="text-red-600">
+                {memberToDelete.firstname} {memberToDelete.lastname}
+              </strong>{" "}
+              ?  
+              การกระทำนี้ไม่สามารถย้อนกลับได้
+            </p>
+
+            <div className="flex justify-end space-x-3">
+              <button
+                onClick={() => setShowDeleteModal(false)}
+                className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300"
+              >
+                ยกเลิก
+              </button>
+              <button
+                onClick={confirmDelete}
+                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+              >
+                ลบ
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {isImportModalOpen && (
         <div className="fixed inset-0 flex items-center justify-center z-50">
           <div className="absolute inset-0 bg-black opacity-50" onClick={() => setIsImportModalOpen(false)}></div>
@@ -640,7 +710,6 @@ const MembersPage: React.FC = () => {
                   เลือกไฟล์
                 </button>
 
-                {/* ✅ แสดงชื่อไฟล์ */}
                 {selectedFile && (
                   <div className="mt-4 text-sm text-gray-700">
                     📄 <strong>{selectedFile.name}</strong>
@@ -648,7 +717,6 @@ const MembersPage: React.FC = () => {
                 )}
               </div>
 
-              {/* ✅ ปุ่มยืนยัน */}
               <button
                 onClick={handleImportFile}
                 disabled={!selectedFile || isLoading}
