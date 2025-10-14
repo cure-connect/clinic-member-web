@@ -224,140 +224,342 @@ const MembersPage: React.FC = () => {
     }
   };
 
-  const handlePrintCard = async (member: Member): Promise<void> => {
-    try {
-      const container = document.createElement('div');
-      container.style.position = 'fixed';
-      container.style.left = '-9999px';
-      container.style.top = '-9999px';
-      document.body.appendChild(container);
+  const handlePrintCard = (member: Member): void => {
+    const printWindow = window.open('', '_blank', 'width=800,height=600');
 
-      const html2canvasModule = await import('html2canvas');
-      const html2canvas = (html2canvasModule.default as unknown) as (element: HTMLElement, options?: any) => Promise<HTMLCanvasElement>;
+    if (!printWindow) return;
 
-      const cardHTML = `
-      <div style="
-        width: 10.5cm;
-        height: 6.3cm;
-        padding: 0.4cm;
-        box-sizing: border-box;
-        background: linear-gradient(to right, rgb(59, 130, 246), rgb(37, 99, 235));
-        color: white;
-        border-radius: 0.5rem;
-        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-        display: flex;
-        flex-direction: column;
-        justify-content: space-between;
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      ">
-        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 0.5rem;">
-          <div>
-            <h2 style="font-size: 0.45cm; line-height: 0.5cm; font-weight: bold; text-transform: uppercase; letter-spacing: 0.05em; margin: 0;">
-              Dental Clinic
-            </h2>
-            <p style="font-size: 0.28cm; line-height: 0.32cm; opacity: 0.9; margin: 0;">
-              Member Card
-            </p>
-          </div>
-        </div>
+    const html = `
+  <html>
+    <head>
+      <title>Member Card - ${member.firstname} ${member.lastname}</title>
+      <style>
+        @page {
+          size: A4;
+          margin: 1cm;
+        }
 
-        <div style="display: flex; flex-direction: row; flex: 1; align-items: center; gap: 0.75rem;">
-          <div style="display: flex; flex-direction: column; justify-content: center; flex: 1;">
-            <p style="font-size: 0.33cm; line-height: 0.50cm; margin-bottom: 1.25rem;">
-              <span style="opacity: 0.8;">ID:</span> ${member.userid}
-            </p>
+        body {
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          min-height: 100vh;
+          background: white;
+          margin: 0;
+          padding: 0.5cm;
+        }
 
-            <div style="margin-bottom: 1.25rem;">
-              <p style="opacity: 0.8; margin-bottom: 0.125rem; font-size: 0.33cm; line-height: 0.40cm;">
-                ชื่อ-นามสกุล
-              </p>
-              <h3 style="font-weight: bold; font-size: 0.48cm; line-height: 0.55cm; margin: 0;">
-                ${member.title} ${member.firstname} ${member.lastname}
-              </h3>
-            </div>
-            
-            <p style="font-size: 0.33cm; line-height: 0.38cm; margin: 0;">
-              <span style="opacity: 0.8;">Tel:</span> ${member.mobile_no}
-            </p>
-          </div>
+        .card {
+          width: 8.56cm;
+          height: 5.39cm;
+          padding: 0.3cm;
+          box-sizing: border-box;
+          background: linear-gradient(to right, rgb(59, 130, 246), rgb(37, 99, 235));
+          color: white;
+          border-radius: 0.3rem;
+          box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+          display: flex;
+          flex-direction: column;
+          justify-content: space-between;
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+          -webkit-print-color-adjust: exact !important;
+          print-color-adjust: exact !important;
+        }
 
-          <div style="
-            background: white;
-            border-radius: 0.5rem;
-            overflow: hidden;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 0.125rem;
-            width: 3.3cm;
-            height: 3.4cm;
-            flex-shrink: 0;
-          ">
-            <img
-              src="${member.qrcode || `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${member.userid}`}"
-              alt="QR Code"
-              style="width: 100%; height: 100%; object-fit: contain;"
-            />
-          </div>
-        </div>
-
-        <div style="
-          margin-top: 0.5rem;
-          border-top: 1px solid rgba(255, 255, 255, 0.3);
-          padding-top: 0.375rem;
+        .header {
           display: flex;
           justify-content: space-between;
-          align-items: end;
-        ">
+          align-items: start;
+        }
+
+        .header h2 {
+          font-size: 0.38cm;
+          line-height: 0.42cm;
+          font-weight: bold;
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+          margin: 0 0 0.1cm 0;
+        }
+
+        .header p {
+          font-size: 0.24cm;
+          line-height: 0.28cm;
+          opacity: 0.9;
+          margin: 0;
+        }
+
+        .content {
+          display: flex;
+          flex-direction: row;
+          flex: 1;
+          align-items: center;
+          gap: 0.5cm;
+          min-height: 0;
+        }
+
+        .info {
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          flex: 1;
+          min-width: 0;
+        }
+
+        .info-row {
+          font-size: 0.28cm;
+          line-height: 0.32cm;
+          margin-bottom: 0.2cm;
+        }
+
+        .label {
+          opacity: 0.8;
+        }
+
+        .name-label {
+          font-size: 0.24cm;
+          line-height: 0.28cm;
+          opacity: 0.8;
+          margin-bottom: 0.05cm;
+        }
+
+        .info h3 {
+          font-weight: bold;
+          font-size: 0.36cm;
+          line-height: 0.40cm;
+          margin: 0 0 0.15cm 0;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+
+        .qr {
+          background: white;
+          border-radius: 0.3rem;
+          overflow: hidden;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          width: 2.4cm;
+          height: 2.4cm;
+          flex-shrink: 0;
+        }
+
+        .qr img {
+          width: 100%;
+          height: 100%;
+          object-fit: contain;
+        }
+
+        .footer {
+          margin-top: 0.2cm;
+          border-top: 1px solid rgba(255, 255, 255, 0.3);
+          padding-top: 0.15cm;
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-end;
+        }
+
+        .footer-text {
+          font-size: 0.24cm;
+          line-height: 0.28cm;
+          opacity: 0.9;
+          margin: 0;
+        }
+
+        @media print {
+          body {
+            background: white;
+            padding: 0;
+          }
+          .card {
+            box-shadow: none;
+          }
+        }
+      </style>
+    </head>
+    <body>
+      <div class="card">
+        <div class="header">
           <div>
-            <p style="opacity: 0.9; font-size: 0.28cm; line-height: 0.32cm; margin: 0;">
-              📞 02-123-4567
+            <h2>Dental Clinic</h2>
+            <p>Member Card</p>
+          </div>
+        </div>
+        <div class="content">
+          <div class="info">
+            <p class="info-row">
+              <span class="label">ID:</span> <strong>${member.userid}</strong>
             </p>
-            <p style="opacity: 0.9; font-size: 0.28cm; line-height: 0.32cm; margin: 0;">
-              Bangkok, Thailand
+            <div style="margin-bottom:0.15cm;">
+              <p class="name-label">ชื่อ-นามสกุล</p>
+              <h3>${member.title} ${member.firstname} ${member.lastname}</h3>
+            </div>
+            <p class="info-row">
+              <span class="label">Tel:</span> <strong>${member.mobile_no}</strong>
             </p>
+          </div>
+          <div class="qr">
+            <img src="${member.qrcode || `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${member.userid}`
+      }" alt="QR Code" />
+          </div>
+        </div>
+        <div class="footer">
+          <div>
+            <p class="footer-text">02-123-4567</p>
+            <p class="footer-text">Bangkok, Thailand</p>
           </div>
         </div>
       </div>
-    `;
+      <script>
+        window.onload = () => {
+          window.print();
+          window.onafterprint = () => window.close();
+        };
+      </script>
+    </body>
+  </html>
+  `;
 
-      container.innerHTML = cardHTML;
-
-      const qrImage = container.querySelector('img');
-      if (qrImage) {
-        await new Promise((resolve) => {
-          qrImage.onload = resolve;
-          qrImage.onerror = resolve;
-        });
-      }
-
-      const canvas = await html2canvas(container, {
-        scale: 3,
-        backgroundColor: null,
-        logging: false,
-        useCORS: true,
-        allowTaint: true
-      });
-
-      document.body.removeChild(container);
-
-      canvas.toBlob((blob: Blob | null) => {
-        if (blob) {
-          const url = URL.createObjectURL(blob);
-          const link = document.createElement('a');
-          link.href = url;
-          link.download = `member-card-${member.userid}-${member.firstname}-${member.lastname}.png`;
-          link.click();
-          URL.revokeObjectURL(url);
-          alert('ดาวน์โหลดบัตรสมาชิกเรียบร้อยแล้ว');
-        }
-      }, 'image/png');
-
-    } catch (error) {
-      console.error('Error printing card:', error);
-      alert('ไม่สามารถพิมพ์บัตรได้ กรุณาลองใหม่');
-    }
+    printWindow.document.open();
+    printWindow.document.write(html);
+    printWindow.document.close();
   };
+
+
+  // const handlePrintCard = async (member: Member): Promise<void> => {
+  //   try {
+  //     const container = document.createElement('div');
+  //     container.style.position = 'fixed';
+  //     container.style.left = '-9999px';
+  //     container.style.top = '-9999px';
+  //     document.body.appendChild(container);
+
+  //     const html2canvasModule = await import('html2canvas');
+  //     const html2canvas = (html2canvasModule.default as unknown) as (element: HTMLElement, options?: any) => Promise<HTMLCanvasElement>;
+
+  //     const cardHTML = `
+  //     <div style="
+  //       width: 10.5cm;
+  //       height: 6.3cm;
+  //       padding: 0.4cm;
+  //       box-sizing: border-box;
+  //       background: linear-gradient(to right, rgb(59, 130, 246), rgb(37, 99, 235));
+  //       color: white;
+  //       border-radius: 0.5rem;
+  //       box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  //       display: flex;
+  //       flex-direction: column;
+  //       justify-content: space-between;
+  //       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  //     ">
+  //       <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 0.5rem;">
+  //         <div>
+  //           <h2 style="font-size: 0.45cm; line-height: 0.5cm; font-weight: bold; text-transform: uppercase; letter-spacing: 0.05em; margin: 0;">
+  //             Dental Clinic
+  //           </h2>
+  //           <p style="font-size: 0.28cm; line-height: 0.32cm; opacity: 0.9; margin: 0;">
+  //             Member Card
+  //           </p>
+  //         </div>
+  //       </div>
+
+  //       <div style="display: flex; flex-direction: row; flex: 1; align-items: center; gap: 0.75rem;">
+  //         <div style="display: flex; flex-direction: column; justify-content: center; flex: 1;">
+  //           <p style="font-size: 0.33cm; line-height: 0.50cm; margin-bottom: 1.25rem;">
+  //             <span style="opacity: 0.8;">ID:</span> ${member.userid}
+  //           </p>
+
+  //           <div style="margin-bottom: 1.25rem;">
+  //             <p style="opacity: 0.8; margin-bottom: 0.125rem; font-size: 0.33cm; line-height: 0.40cm;">
+  //               ชื่อ-นามสกุล
+  //             </p>
+  //             <h3 style="font-weight: bold; font-size: 0.48cm; line-height: 0.55cm; margin: 0;">
+  //               ${member.title} ${member.firstname} ${member.lastname}
+  //             </h3>
+  //           </div>
+
+  //           <p style="font-size: 0.33cm; line-height: 0.38cm; margin: 0;">
+  //             <span style="opacity: 0.8;">Tel:</span> ${member.mobile_no}
+  //           </p>
+  //         </div>
+
+  //         <div style="
+  //           background: white;
+  //           border-radius: 0.5rem;
+  //           overflow: hidden;
+  //           display: flex;
+  //           align-items: center;
+  //           justify-content: center;
+  //           padding: 0.125rem;
+  //           width: 3.3cm;
+  //           height: 3.4cm;
+  //           flex-shrink: 0;
+  //         ">
+  //           <img
+  //             src="${member.qrcode || `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${member.userid}`}"
+  //             alt="QR Code"
+  //             style="width: 100%; height: 100%; object-fit: contain;"
+  //           />
+  //         </div>
+  //       </div>
+
+  //       <div style="
+  //         margin-top: 0.5rem;
+  //         border-top: 1px solid rgba(255, 255, 255, 0.3);
+  //         padding-top: 0.375rem;
+  //         display: flex;
+  //         justify-content: space-between;
+  //         align-items: end;
+  //       ">
+  //         <div>
+  //           <p style="opacity: 0.9; font-size: 0.28cm; line-height: 0.32cm; margin: 0;">
+  //             📞 02-123-4567
+  //           </p>
+  //           <p style="opacity: 0.9; font-size: 0.28cm; line-height: 0.32cm; margin: 0;">
+  //             Bangkok, Thailand
+  //           </p>
+  //         </div>
+  //       </div>
+  //     </div>
+  //   `;
+
+  //     container.innerHTML = cardHTML;
+
+  //     const qrImage = container.querySelector('img');
+  //     if (qrImage) {
+  //       await new Promise((resolve) => {
+  //         qrImage.onload = resolve;
+  //         qrImage.onerror = resolve;
+  //       });
+  //     }
+
+  //     const canvas = await html2canvas(container, {
+  //       scale: 3,
+  //       backgroundColor: null,
+  //       logging: false,
+  //       useCORS: true,
+  //       allowTaint: true
+  //     });
+
+  //     document.body.removeChild(container);
+
+  //     canvas.toBlob((blob: Blob | null) => {
+  //       if (blob) {
+  //         const url = URL.createObjectURL(blob);
+  //         const link = document.createElement('a');
+  //         link.href = url;
+  //         link.download = `member-card-${member.userid}-${member.firstname}-${member.lastname}.png`;
+  //         link.click();
+  //         URL.revokeObjectURL(url);
+  //         alert('ดาวน์โหลดบัตรสมาชิกเรียบร้อยแล้ว');
+  //       }
+  //     }, 'image/png');
+
+  //   } catch (error) {
+  //     console.error('Error printing card:', error);
+  //     alert('ไม่สามารถพิมพ์บัตรได้ กรุณาลองใหม่');
+  //   }
+  // };
 
 
 
@@ -623,7 +825,7 @@ const MembersPage: React.FC = () => {
         </div>
       )}
 
-            {showDeleteModal && memberToDelete && (
+      {showDeleteModal && memberToDelete && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
           <div
             className="absolute inset-0 bg-black opacity-50"
@@ -644,11 +846,11 @@ const MembersPage: React.FC = () => {
             </div>
 
             <p className="text-gray-700 mb-6">
-              คุณแน่ใจหรือไม่ว่าต้องการลบสมาชิก  
+              คุณแน่ใจหรือไม่ว่าต้องการลบสมาชิก
               <strong className="text-red-600">
                 {memberToDelete.firstname} {memberToDelete.lastname}
               </strong>{" "}
-              ?  
+              ?
               การกระทำนี้ไม่สามารถย้อนกลับได้
             </p>
 
@@ -831,27 +1033,25 @@ const MembersPage: React.FC = () => {
           </div>
         </div>
       )}
-
       {selectedMember && (
         <div className="fixed inset-0 flex items-center justify-center z-50">
           <div
             className="absolute inset-0 bg-black opacity-50"
             onClick={() => setSelectedMember(null)}
           ></div>
-          <div className="relative bg-white p-6 rounded-lg max-w-md w-full mx-4 shadow-lg">
-            <h3 className="text-lg font-semibold mb-4">บัตรสมาชิก</h3>
-            <MemberCard member={selectedMember} />
-            <div className="mt-4 flex justify-end">
-              <button
-                onClick={() => setSelectedMember(null)}
-                className="px-4 py-2 bg-red-500 text-white rounded hover:bg-gray-600"
-              >
-                ปิด
-              </button>
-            </div>
+          <div className="relative bg-white p-4 rounded-xl shadow-2xl flex flex-col items-center">
+            <h3 className="text-lg font-semibold mb-3 text-gray-700">บัตรสมาชิก</h3>
+            <MemberCard member={selectedMember} showPrint />
+            <button
+              onClick={() => setSelectedMember(null)}
+              className="mt-4 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition"
+            >
+              ปิด
+            </button>
           </div>
         </div>
       )}
+
     </div>
   );
 };

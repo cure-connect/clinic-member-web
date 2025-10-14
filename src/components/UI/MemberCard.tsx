@@ -8,65 +8,64 @@ const MemberCard: React.FC<MemberCardProps> = ({ member, showPrint = false }) =>
       className={`bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg shadow-lg flex flex-col justify-between ${showPrint ? 'print-card' : ''
         }`}
       style={{
-        width: '10.5cm',
-        height: '6.3cm',
-        padding: '0.4cm',
+        width: '8.56cm',
+        height: '5.4cm',
+        padding: '0.3cm',
         boxSizing: 'border-box'
       }}
     >
-      <div className="flex justify-between items-start mb-2">
+      <div className="flex justify-between items-start">
         <div>
           <h2
             className="font-bold uppercase tracking-wide"
-            style={{ fontSize: '0.45cm', lineHeight: '0.5cm' }}
+            style={{ fontSize: '0.38cm', lineHeight: '0.42cm' }}
           >
             Dental Clinic
           </h2>
           <p
             className="opacity-90"
-            style={{ fontSize: '0.28cm', lineHeight: '0.32cm' }}
+            style={{ fontSize: '0.24cm', lineHeight: '0.28cm' }}
           >
             Member Card
           </p>
         </div>
       </div>
 
-      <div className="flex flex-row h-full items-center gap-3">
-        <div className="flex flex-col justify-center flex-1">
+      <div className="flex flex-row items-center gap-2 flex-1">
+        <div className="flex flex-col justify-center flex-1 min-w-0">
           <p 
             className="mb-5"
-            style={{ fontSize: '0.33cm', lineHeight: '0.50cm' }}
+            style={{ fontSize: '0.28cm', lineHeight: '0.32cm' }}
           >
-            <span className="opacity-80">ID:</span> {member.userid}
+            <span className="opacity-80">ID:</span> <span className="font-semibold">{member.userid}</span>
           </p>
 
-          <div className="space-y-4">
-            <div className="mb-5">
+          <div className="space-y-5">
+            <div>
               <p
-                className="opacity-80 mb-0.5"
-                style={{ fontSize: '0.33cm', lineHeight: '0.40cm' }}
+                className="opacity-80 mb-1"
+                style={{ fontSize: '0.24cm', lineHeight: '0.28cm' }}
               >
                 ชื่อ-นามสกุล
               </p>
               <h3
-                className="font-bold"
-                style={{ fontSize: '0.48cm', lineHeight: '0.55cm' }}
+                className="font-bold truncate"
+                style={{ fontSize: '0.36cm', lineHeight: '0.40cm' }}
               >
                 {member.title} {member.firstname} {member.lastname}
               </h3>
             </div>
-            <p style={{ fontSize: '0.33cm', lineHeight: '0.38cm' }}>
-              <span className="opacity-80">Tel:</span> {member.mobile_no}
+            <p style={{ fontSize: '0.26cm', lineHeight: '0.30cm' }}>
+              <span className="opacity-80">Tel:</span> <span className="font-semibold">{member.mobile_no}</span>
             </p>
           </div>
         </div>
 
         <div
-          className="bg-gray rounded-lg overflow-hidden flex items-center justify-center p-0.5"
+          className="bg-gray rounded overflow-hidden flex items-center justify-center flex-shrink-0"
           style={{
-            width: '3.3cm',
-            height: '3.4cm',
-            flexShrink: 0
+            width: '2.4cm',
+            height: '2.4cm'
           }}
         >
           <img
@@ -76,25 +75,25 @@ const MemberCard: React.FC<MemberCardProps> = ({ member, showPrint = false }) =>
           />
         </div>
       </div>
+<div
+  className="mt-2 border-t border-white/30 pt-2 flex justify-between items-end"
+>
+  <div className="space-y-0.5">
+    <p
+      className="opacity-90"
+      style={{ fontSize: '0.24cm', lineHeight: '0.32cm' }}
+    >
+      02-123-4567
+    </p>
+    <p
+      className="opacity-90"
+      style={{ fontSize: '0.24cm', lineHeight: '0.32cm' }}
+    >
+      Bangkok, Thailand
+    </p>
+  </div>
+</div>
 
-      <div
-        className="mt-2 border-t border-white/30 pt-1.5 flex justify-between items-end"
-      >
-        <div>
-          <p
-            className="opacity-90"
-            style={{ fontSize: '0.28cm', lineHeight: '0.32cm' }}
-          >
-            📞 02-123-4567
-          </p>
-          <p
-            className="opacity-90"
-            style={{ fontSize: '0.28cm', lineHeight: '0.32cm' }}
-          >
-            Bangkok, Thailand
-          </p>
-        </div>
-      </div>
     </div>
   );
 };
