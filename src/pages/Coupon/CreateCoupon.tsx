@@ -60,7 +60,7 @@ const CreateCouponPage: React.FC = () => {
       const body = {
         ...newReward,
         point_require: Number(newReward.point_require) || 0,
-        limit_per_user: Number(newReward.limit_per_user) || 0,
+        limit_per_user: newReward.limit_per_user === '' ? null : Number(newReward.limit_per_user),
       };
 
       const res = await fetch('http://localhost:8888/api/reward', {
@@ -100,7 +100,6 @@ const CreateCouponPage: React.FC = () => {
       <h2 className="text-xl font-semibold text-gray-800 mb-6">สร้างคูปอง</h2>
 
       <form onSubmit={handleSubmit} className="space-y-4">
-        {/* ชื่อคูปอง */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">ชื่อคูปอง</label>
           <input
@@ -112,7 +111,6 @@ const CreateCouponPage: React.FC = () => {
           />
         </div>
 
-        {/* รายละเอียด */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">รายละเอียด</label>
           <textarea
@@ -124,7 +122,6 @@ const CreateCouponPage: React.FC = () => {
           />
         </div>
 
-        {/* คะแนนที่ต้องใช้ / จำนวนจำกัดต่อคน */}
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">คะแนนที่ต้องใช้</label>
@@ -141,13 +138,12 @@ const CreateCouponPage: React.FC = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">จำนวนที่จำกัดต่อคน</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">จำนวนที่จำกัดต่อคน (ไม่จำเป็น)</label>
             <input
               type="text"
               inputMode="numeric"
               pattern="[0-9]*"
               placeholder="กรอกเฉพาะตัวเลข"
-              required
               className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               value={newReward.limit_per_user}
               onChange={handleInputChange('limit_per_user')}
@@ -155,7 +151,6 @@ const CreateCouponPage: React.FC = () => {
           </div>
         </div>
 
-        {/* วันเริ่มต้น / วันหมดอายุ (ไม่ required) */}
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">วันเริ่มต้น (ไม่จำเป็น)</label>

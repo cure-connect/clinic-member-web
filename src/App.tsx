@@ -14,6 +14,7 @@ import CreateCouponPage from './pages/Coupon/CreateCoupon.tsx';
 import UseCouponPage from './pages/Coupon/UseCouponPage.tsx';
 import CouponHistoryPage from './pages/Coupon/CouponHistory.tsx';
 import UsersManagementPage from './pages/Users/UserManagement.tsx';
+import UserInfoPage from './pages/Users/UserInfoPage.tsx';
 import './App.css';
 import ScanQRPage from './pages/QRCode/QrScanPage.tsx';
 
@@ -69,13 +70,14 @@ const App: React.FC = () => {
   if (!user) {
     return (
       <Routes>
+        <Route path="/userinfo/:userid" element={<UserInfoPage />} />
         <Route path="/login" element={<LoginPage onLogin={handleLogin} />} />
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     );
   }
 
-  const isManagerOrAdmin = user.role === 'manager' || user.role === 'admin';
+  const isManagerOrAdmin = user.role === 'manager';
 
   return (
     <div className="min-h-screen bg-gray-100">

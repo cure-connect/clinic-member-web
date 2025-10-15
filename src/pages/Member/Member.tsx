@@ -387,15 +387,12 @@ const MembersPage: React.FC = () => {
         </div>
         <div class="content">
           <div class="info">
-            <p class="info-row">
-              <span class="label">ID:</span> <strong>${member.userid}</strong>
-            </p>
             <div style="margin-bottom:0.15cm;">
               <p class="name-label">ชื่อ-นามสกุล</p>
               <h3>${member.title} ${member.firstname} ${member.lastname}</h3>
             </div>
             <p class="info-row">
-              <span class="label">Tel:</span> <strong>${member.mobile_no}</strong>
+              <span class="label">โทรศัพท์:</span> <strong>${member.mobile_no}</strong>
             </p>
           </div>
           <div class="qr">
@@ -605,7 +602,7 @@ const MembersPage: React.FC = () => {
               <table className="min-w-full table-auto">
                 <thead>
                   <tr>
-                    {['รหัสสมาชิก', 'ชื่อ - นามสกุล', 'เบอร์โทร / ผู้สร้าง', 'บทบาท', 'วันที่สมัคร', 'จัดการ'].map((header) => (
+                    {['รหัสสมาชิก', 'ชื่อ - นามสกุล', 'คะแนนคงเหลือ','เบอร์โทร / ผู้สร้าง', 'บทบาท', 'วันที่สมัคร', 'จัดการ'].map((header) => (
                       <th
                         key={header}
                         className="px-4 py-3 text-left text-xs sm:text-sm font-semibold text-gray-600 uppercase tracking-wider bg-blue-200"
@@ -620,6 +617,7 @@ const MembersPage: React.FC = () => {
                     <tr key={member.userid} className="hover:bg-gray-50 transition-colors duration-150">
                       <td className="px-4 py-3 text-sm text-gray-700">{member.userid}</td>
                       <td className="px-4 py-3 text-sm text-gray-800">{member.title} {member.firstname} {member.lastname}</td>
+                      <td className="px-4 py-3 text-sm text-gray-700">{member.point}</td>
                       <td className="px-4 py-3 text-sm">
                         <div>{member.mobile_no}</div>
                         <div className="text-gray-500 text-xs">{member.created_by}</div>
@@ -677,14 +675,18 @@ const MembersPage: React.FC = () => {
                 className="bg-white p-4 rounded-lg shadow flex flex-col gap-3"
               >
                 <div className="text-sm text-gray-600">
-                  <span className="text-gray-400">ชื่อ - นามสกุล: </span>
+                  <span className="text-gray-400">รหัสสมาชิก: </span>
                   <span className="font-medium text-gray-800">
-                    {member.title} {member.firstname} {member.lastname}
+                    {member.userid}
                   </span>
                 </div>
                 <div className="text-sm text-gray-600">
-                  <span className="text-gray-400">รหัสสมาชิก: </span>
-                  {member.userid}
+                  <span className="text-gray-400">ชื่อ - นามสกุล: </span>
+                  {member.title} {member.firstname} {member.lastname}
+                </div>
+                <div className="text-sm text-gray-600">
+                  <span className="text-gray-400">คะแนนคงเหลือ: </span>
+                  {member.point}
                 </div>
                 <div className="text-sm text-gray-600">
                   <span className="text-gray-400">เบอร์โทรศัพท์: </span>

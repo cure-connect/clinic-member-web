@@ -221,7 +221,6 @@ const PointsManagementPage: React.FC = () => {
         </div>
       )}
 
-      {/* ช่องค้นหา */}
       <div className="relative">
         <label className="block mb-2 font-medium text-gray-700">ค้นหาสมาชิก</label>
         <div className="relative">

@@ -18,24 +18,30 @@ const QrReader: React.FC = () => {
 
     try {
       const parsed = JSON.parse(rawValue);
-      console.log("Parsed QR Object:", parsed);
+      const storedUser = localStorage.getItem("clinicUser");
+      if (!storedUser) throw new Error("กรุณาเข้าสู่ระบบก่อนสแกน");
+      const currentUser = JSON.parse(storedUser);
 
-      navigate("/manage-points", {
-        state: {
-          userid: parsed.userid,
-          firstname: parsed.firstname,
-          lastname: parsed.lastname,
-          username: parsed.username,
-          role: parsed.role,
-          fromQR: true,
-        },
-      });
+      if (currentUser.role === "admin" || currentUser.role === "manager") {
+        navigate("/manage-points", {
+          state: {
+            userid: parsed.userid,
+            firstname: parsed.firstname,
+            lastname: parsed.lastname,
+            username: parsed.username,
+            fromQR: true,
+          },
+        });
+      } else {
+        window.location.href = `http://localhost:5173/userinfo/${parsed.userid}`;
+      }
     } catch (err) {
       console.error("QR code ไม่ถูกต้อง", err);
       alert("QR code ไม่ถูกต้อง หรือข้อมูลไม่ใช่ JSON");
       setHasScanned(false);
     }
   };
+
 
   const handleError = (error: unknown) => {
     console.error("เกิดข้อผิดพลาดในการสแกน:", error);

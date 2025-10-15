@@ -33,13 +33,6 @@ const MemberCard: React.FC<MemberCardProps> = ({ member, showPrint = false }) =>
 
       <div className="flex flex-row items-center gap-2 flex-1">
         <div className="flex flex-col justify-center flex-1 min-w-0">
-          <p 
-            className="mb-5"
-            style={{ fontSize: '0.28cm', lineHeight: '0.32cm' }}
-          >
-            <span className="opacity-80">ID:</span> <span className="font-semibold">{member.userid}</span>
-          </p>
-
           <div className="space-y-5">
             <div>
               <p
@@ -56,7 +49,7 @@ const MemberCard: React.FC<MemberCardProps> = ({ member, showPrint = false }) =>
               </h3>
             </div>
             <p style={{ fontSize: '0.26cm', lineHeight: '0.30cm' }}>
-              <span className="opacity-80">Tel:</span> <span className="font-semibold">{member.mobile_no}</span>
+              <span className="opacity-80">โทรศัพท์:</span> <span className="font-semibold">{member.mobile_no}</span>
             </p>
           </div>
         </div>

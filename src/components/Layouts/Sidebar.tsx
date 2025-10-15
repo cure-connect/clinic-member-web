@@ -25,7 +25,7 @@ const Sidebar: React.FC<SidebarProps> = ({ user }) => {
     { id: 'manage-points', label: 'จัดการคะแนน', icon: Star, roles: ['admin', 'manager'] },
     { id: 'create-coupon', label: 'สร้างคูปอง', icon: Gift, roles: ['admin', 'manager'] },
     { id: 'use-coupon', label: 'ใช้คูปอง', icon: FileText, roles: ['admin', 'manager'] },
-    { id: 'coupon-history', label: 'ประวัติคูปอง', icon: History, roles: ['admin', 'manager'] },
+    { id: 'coupon-history', label: 'ประวัติการใช้งาน', icon: History, roles: ['admin', 'manager'] },
     { id: 'users', label: 'จัดการผู้ใช้', icon: Settings, roles: ['admin', 'manager'] }
   ];
 
