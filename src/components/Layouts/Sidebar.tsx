@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
-  Users, UserPlus, Upload, Scan, Star, Gift, FileText, History, Settings, Menu, X
+  Users, Scan, Star, Gift, FileText, History, Settings, Menu, X
 } from 'lucide-react';
 import type { User } from '../../types/index.tsx';
 import type { NavigationItem } from '../../types/index.tsx';

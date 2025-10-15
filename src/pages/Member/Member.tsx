@@ -134,12 +134,6 @@ const MembersPage: React.FC = () => {
     setNewMember(prev => ({ ...prev, [field]: value }));
   };
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>): void => {
-    if (e.target.files && e.target.files[0]) {
-      alert('อัพโหลดไฟล์: ' + e.target.files[0].name);
-    }
-  };
-
   const handleEditClick = (member: Member): void => {
     setEditMember({
       userid: parseInt(member.userid),

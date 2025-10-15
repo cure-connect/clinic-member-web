@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Plus, Minus, QrCode, ArrowLeft, Search } from "lucide-react";
+import { QrCode, ArrowLeft, Search } from "lucide-react";
 import type { Member, Coupon } from "@/types/index.tsx";
 
 interface LocationState {
