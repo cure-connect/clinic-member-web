@@ -1,10 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import type { Member, Coupon } from '@/types/index.tsx';
 
 const UseCouponPage: React.FC = () => {
   const [members, setMembers] = useState<Member[]>([]);
   const [coupons, setCoupons] = useState<Coupon[]>([]);
   const [selectedMemberId, setSelectedMemberId] = useState<string>('');
+  const [search, setSearch] = useState<string>(''); // ช่องค้นหา
+  const [showDropdown, setShowDropdown] = useState<boolean>(false); // แสดง dropdown
+
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   const selectedMember = members.find(
     (m) => String(m.userid) === String(selectedMemberId)
@@ -39,6 +43,17 @@ const UseCouponPage: React.FC = () => {
 
     fetchMembers();
     fetchCoupons();
+  }, []);
+
+  // ปิด dropdown เมื่อคลิกข้างนอก
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setShowDropdown(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
   const useCoupon = async (coupon: Coupon): Promise<void> => {
@@ -86,28 +101,58 @@ const UseCouponPage: React.FC = () => {
     }
   };
 
+  // กรองสมาชิกตามคำค้น
+  const filteredMembers = members.filter(
+    (m) =>
+      m.firstname.toLowerCase().includes(search.toLowerCase()) ||
+      m.lastname.toLowerCase().includes(search.toLowerCase()) ||
+      String(m.userid).includes(search)
+  );
+
   return (
     <div className="space-y-6">
       <div className="bg-white rounded-lg shadow border p-6">
         <h2 className="text-xl font-semibold text-gray-800 mb-6">ใช้คูปอง</h2>
 
-        <div className="mb-6">
+        {/* 🔍 ช่องค้นหา + Dropdown */}
+        <div className="mb-6 relative" ref={dropdownRef}>
           <label className="block text-sm font-medium text-gray-700 mb-2">
             เลือกสมาชิก
           </label>
-          <select
+          <input
+            type="text"
+            placeholder="ค้นหาชื่อหรือรหัสสมาชิก..."
             className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            value={selectedMemberId}
-            onChange={(e) => setSelectedMemberId(e.target.value)}
-          >
-            <option value="">เลือกสมาชิก</option>
-            {members.map((member) => (
-              <option key={member.userid} value={member.userid}>
-                {member.firstname} {member.lastname} ({member.userid}) -{' '}
-                {member.point} แต้ม
-              </option>
-            ))}
-          </select>
+            value={
+              selectedMember
+                ? `${selectedMember.firstname} ${selectedMember.lastname} (${selectedMember.userid})`
+                : search
+            }
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setShowDropdown(true);
+              setSelectedMemberId('');
+            }}
+            onFocus={() => setShowDropdown(true)}
+          />
+
+          {showDropdown && filteredMembers.length > 0 && (
+            <ul className="absolute z-10 w-full bg-white border rounded-lg shadow max-h-48 overflow-y-auto mt-1">
+              {filteredMembers.map((member) => (
+                <li
+                  key={member.userid}
+                  onClick={() => {
+                    setSelectedMemberId(String(member.userid));
+                    setSearch('');
+                    setShowDropdown(false);
+                  }}
+                  className="px-3 py-2 cursor-pointer hover:bg-blue-100"
+                >
+                  {member.firstname} {member.lastname} ({member.userid}) - {member.point} แต้ม
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
 
         <div>
