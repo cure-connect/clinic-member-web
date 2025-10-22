@@ -1,53 +1,58 @@
-import React, { useState, useEffect } from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
-import type { User } from './types/index.tsx';
-import LoginPage from './components/Auth/LoginPage.tsx';
-import Header from './components/Layouts/Header.tsx';
-import Sidebar from './components/Layouts/Sidebar.tsx';
-import DashboardPage from './pages/Dashboard/Dashboard.tsx';
-import MembersPage from './pages/Member/Member.tsx';
-import CreateMemberPage from './pages/Member/CreateMemberPage.tsx';
-import ImportMembersPage from './pages/Member/ImportMember.tsx';
-import PrintCardPage from './pages/Member/PrintCardPage.tsx';
-import PointsManagementPage from './pages/Points/PointManagePage.tsx';
-import CreateCouponPage from './pages/Coupon/CreateCoupon.tsx';
-import UseCouponPage from './pages/Coupon/UseCouponPage.tsx';
-import CouponHistoryPage from './pages/Coupon/CouponHistory.tsx';
-import UsersManagementPage from './pages/Users/UserManagement.tsx';
-import UserInfoPage from './pages/Users/UserInfoPage.tsx';
-import './App.css';
-import ScanQRPage from './pages/QRCode/QrScanPage.tsx';
+import React, { useState, useEffect } from "react";
+import { Routes, Route, Navigate } from "react-router-dom";
+import type { User } from "./types/index.tsx";
+import useAuthCheck from "./utils/useAuthCheck.tsx";
+import LoginPage from "./components/Auth/LoginPage.tsx";
+import Header from "./components/Layouts/Header.tsx";
+import Sidebar from "./components/Layouts/Sidebar.tsx";
+import DashboardPage from "./pages/Dashboard/Dashboard.tsx";
+import MembersPage from "./pages/Member/Member.tsx";
+import CreateMemberPage from "./pages/Member/CreateMemberPage.tsx";
+import ImportMembersPage from "./pages/Member/ImportMember.tsx";
+import PrintCardPage from "./pages/Member/PrintCardPage.tsx";
+import PointsManagementPage from "./pages/Points/PointManagePage.tsx";
+import CreateCouponPage from "./pages/Coupon/CreateCoupon.tsx";
+import UseCouponPage from "./pages/Coupon/UseCouponPage.tsx";
+import CouponHistoryPage from "./pages/Coupon/CouponHistory.tsx";
+import UsersManagementPage from "./pages/Users/UserManagement.tsx";
+import UserInfoPage from "./pages/Users/UserInfoPage.tsx";
+import ScanQRPage from "./pages/QRCode/QrScanPage.tsx";
+import "./App.css";
 
 const App: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useAuthCheck();
 
   useEffect(() => {
-    const savedUser = localStorage.getItem('clinicUser');
-    const savedToken = localStorage.getItem('clinicToken');
-    if (savedUser && savedToken) {
+    const savedUser = localStorage.getItem("clinicUser");
+
+    if (savedUser) {
       try {
-        setUser(JSON.parse(savedUser));
+        const parsedUser = JSON.parse(savedUser);
+        setUser(parsedUser);
       } catch {
-        localStorage.removeItem('clinicUser');
-        localStorage.removeItem('clinicToken');
+        localStorage.removeItem("clinicUser");
+        localStorage.removeItem("clinicToken");
       }
     }
+
     setIsLoading(false);
   }, []);
 
   const handleLogin = (userData: User, token?: string): void => {
     setUser(userData);
     if (token) {
-      localStorage.setItem('clinicUser', JSON.stringify(userData));
-      localStorage.setItem('clinicToken', token);
+      localStorage.setItem("clinicUser", JSON.stringify(userData));
+      localStorage.setItem("clinicToken", token);
     }
   };
 
   const handleLogout = (): void => {
     setUser(null);
-    localStorage.removeItem('clinicUser');
-    localStorage.removeItem('clinicToken');
+    localStorage.removeItem("clinicUser");
+    localStorage.removeItem("clinicToken");
   };
 
   if (isLoading) {
@@ -67,42 +72,56 @@ const App: React.FC = () => {
     </div>
   );
 
+  const isManagerOrAdmin = user?.role === "manager";
+
   if (!user) {
     return (
-      <Routes>
-        <Route path="/userinfo/:userid" element={<UserInfoPage />} />
-        <Route path="/login" element={<LoginPage onLogin={handleLogin} />} />
-        <Route path="*" element={<Navigate to="/login" replace />} />
-      </Routes>
+      <>
+        <Routes>
+          <Route path="/userinfo/:userid" element={<UserInfoPage />} />
+          <Route path="/login" element={<LoginPage onLogin={handleLogin} />} />
+          <Route path="*" element={<Navigate to="/login" replace />} />
+        </Routes>
+      </>
     );
   }
 
-  const isManagerOrAdmin = user.role === 'manager';
-
   return (
-    <div className="min-h-screen bg-gray-100">
-      <Header user={user} onLogout={handleLogout} />
-      <div className="flex">
-        <Sidebar user={user} onLogout={handleLogout} />
-        <main className="flex-1 p-6">
-          <Routes>
-            <Route path="/" element={<Navigate to="/dashboard" replace />} />
-            <Route path="/dashboard" element={<DashboardPage />} />
-            <Route path="/members" element={<MembersPage />} />
-            <Route path="/create-member" element={<CreateMemberPage />} />
-            <Route path="/import-members" element={isManagerOrAdmin ? <ImportMembersPage /> : <AccessDenied />} />
-            <Route path="/scan-qr" element={<ScanQRPage />} />
-            <Route path="/manage-points" element={<PointsManagementPage />} />
-            <Route path="/create-coupon" element={isManagerOrAdmin ? <CreateCouponPage /> : <AccessDenied />} />
-            <Route path="/use-coupon" element={<UseCouponPage />} />
-            <Route path="/coupon-history" element={<CouponHistoryPage />} />
-            <Route path="/print-card" element={<PrintCardPage />} />
-            <Route path="/users" element={isManagerOrAdmin ? <UsersManagementPage /> : <AccessDenied />} />
-            <Route path="*" element={<Navigate to="/dashboard" replace />} />
-          </Routes>
-        </main>
+    <>
+      <div className="min-h-screen bg-gray-100">
+        <Header user={user} onLogout={handleLogout} />
+        <div className="flex">
+          <Sidebar user={user} onLogout={handleLogout} />
+          <main className="flex-1 p-6">
+            <Routes>
+              <Route path="/" element={<Navigate to="/dashboard" replace />} />
+              <Route path="/dashboard" element={<DashboardPage />} />
+              <Route path="/members" element={<MembersPage />} />
+              <Route path="/create-member" element={<CreateMemberPage />} />
+              <Route
+                path="/import-members"
+                element={isManagerOrAdmin ? <ImportMembersPage /> : <AccessDenied />}
+              />
+              <Route path="/scan-qr" element={<ScanQRPage />} />
+              <Route path="/manage-points" element={<PointsManagementPage />} />
+              <Route
+                path="/create-coupon"
+                element={isManagerOrAdmin ? <CreateCouponPage /> : <AccessDenied />}
+              />
+              <Route path="/use-coupon" element={<UseCouponPage />} />
+              <Route path="/coupon-history" element={<CouponHistoryPage />} />
+              <Route path="/print-card" element={<PrintCardPage />} />
+              <Route
+                path="/users"
+                element={isManagerOrAdmin ? <UsersManagementPage /> : <AccessDenied />}
+              />
+              <Route path="/userinfo/:userid" element={<UserInfoPage />} />
+              <Route path="*" element={<Navigate to="/dashboard" replace />} />
+            </Routes>
+          </main>
+        </div>
       </div>
-    </div>
+    </>
   );
 };
 

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { QrCode, ArrowLeft, Search } from "lucide-react";
 import type { Member, Coupon } from "@/types/index.tsx";
+import api from '../../utils/axiosInstance.ts'
 
 interface LocationState {
   userid: string | number;
@@ -10,6 +11,8 @@ interface LocationState {
   role?: string;
   fromQR?: boolean;
 }
+
+const apiUrl = import.meta.env.VITE_API_URL;
 
 const PointsManagementPage: React.FC = () => {
   const location = useLocation();
@@ -32,21 +35,25 @@ const PointsManagementPage: React.FC = () => {
   const [currentUser, setCurrentUser] = useState<string>("");
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [openDropdown, setOpenDropdown] = useState<boolean>(false);
-
-  const redirectToLogin = () => {
-    localStorage.removeItem("clinicToken");
-    window.location.href = "/login";
-  };
+  const token = localStorage.getItem("clinicToken");
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const resMembers = await fetch("http://localhost:8888/api/user");
-        const resCoupons = await fetch("http://localhost:8888/api/reward");
-        if (!resMembers.ok || !resCoupons.ok) throw new Error("โหลดข้อมูลไม่สำเร็จ");
+        const resMembers = await api.get(`${apiUrl}/user`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
 
-        const dataMembers: Member[] = await resMembers.json();
-        const dataCoupons: Coupon[] = await resCoupons.json();
+        const resCoupons = await api.get(`${apiUrl}/reward`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        const dataMembers: Member[] = await resMembers.data;
+        const dataCoupons: Coupon[] = await resCoupons.data;
         setCoupons(dataCoupons);
 
         let mergedMembers = dataMembers;
@@ -63,10 +70,10 @@ const PointsManagementPage: React.FC = () => {
         }
         setMembers(mergedMembers);
 
-        const storedUser = localStorage.getItem("clinicUser"); 
+        const storedUser = localStorage.getItem("clinicUser");
         if (storedUser) {
           const user = JSON.parse(storedUser);
-          setCurrentUser(user.username); 
+          setCurrentUser(user.username);
         }
       } catch (err) {
         console.error(err);
@@ -84,27 +91,22 @@ const PointsManagementPage: React.FC = () => {
     if (!selectedMemberId || pendingPoints === 0) return;
     try {
       const token = localStorage.getItem("clinicToken");
-      const res = await fetch("http://localhost:8888/api/point", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
+      await api.post(
+        `${apiUrl}/point`,
+        {
           userid: Number(selectedMemberId),
           reward_used_id: null,
           score: pendingPoints,
           status: "active",
           created_by: currentUser,
-        }),
-      });
-
-      if (res.status === 401) {
-        alert("เซสชันหมดอายุ กรุณาเข้าสู่ระบบใหม่");
-        redirectToLogin();
-        return;
-      }
-      if (!res.ok) throw new Error("อัปเดตคะแนนไม่สำเร็จ");
+        },
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
       setMembers(prev =>
         prev.map(m =>
@@ -151,15 +153,12 @@ const PointsManagementPage: React.FC = () => {
         status: "used",
       };
 
-      const res = await fetch("http://localhost:8888/api/rewardused", {
-        method: "POST",
+      await api.post("/rewardused", body, {
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify(body),
       });
-
-      if (!res.ok) throw new Error("Failed to record coupon usage");
 
       setMembers(prev =>
         prev.map(member =>

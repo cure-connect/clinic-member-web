@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Users, Star, Gift, FileText } from 'lucide-react';
+import api from '../../utils/axiosInstance.ts'
 
 interface Member {
   userid: string;
@@ -45,6 +46,8 @@ const StatsCard: React.FC<StatsCardProps> = ({ title, value, icon: Icon, color }
   );
 };
 
+const apiUrl = import.meta.env.VITE_API_URL;
+
 const DashboardPage: React.FC = () => {
   const [members, setMembers] = useState<Member[]>([]);
   const [coupons, setCoupons] = useState<Coupon[]>([]);
@@ -52,15 +55,25 @@ const DashboardPage: React.FC = () => {
 
   useEffect(() => {
     const fetchData = async () => {
+      const token = localStorage.getItem("clinicToken");
+
       try {
-        const resMembers = await fetch('http://localhost:8888/api/user');
-        if (!resMembers.ok) throw new Error('Failed to fetch members');
-        const dataMembers: Member[] = await resMembers.json();
+        const resMembers = await api.get(`${apiUrl}/user`, {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        const dataMembers: Member[] = await resMembers.data;
         setMembers(dataMembers);
 
-        const resCoupons = await fetch('http://localhost:8888/api/reward');
-        if (!resCoupons.ok) throw new Error('Failed to fetch coupons');
-        const dataCoupons: Coupon[] = await resCoupons.json();
+        const resCoupons = await api.get(`${apiUrl}/reward`, {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        const dataCoupons: Coupon[] = await resCoupons.data;
         setCoupons(dataCoupons);
       } catch (err) {
         console.error(err);
@@ -68,8 +81,10 @@ const DashboardPage: React.FC = () => {
         setLoading(false);
       }
     };
+
     fetchData();
   }, []);
+
 
   if (loading) return <div className="p-6 text-center">กำลังโหลดข้อมูล...</div>;
 
@@ -81,30 +96,31 @@ const DashboardPage: React.FC = () => {
         </div>
 
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-          <StatsCard 
-            title="สมาชิกทั้งหมด" 
-            value={members.length} 
-            icon={Users} 
-            color="blue" 
+          <StatsCard
+            title="สมาชิกทั้งหมด"
+            value={members.length}
+            icon={Users}
+            color="blue"
           />
-          <StatsCard 
-            title="คะแนนรวม" 
-            value={members.reduce((sum, m) => sum + (m.point ?? 0), 0)} 
-            icon={Star} 
-            color="yellow" 
+          <StatsCard
+            title="คะแนนรวม"
+            value={members.reduce((sum, m) => sum + (m.point ?? 0), 0)}
+            icon={Star}
+            color="yellow"
           />
-          <StatsCard 
-            title="คูปองทั้งหมด" 
-            value={coupons.length} 
-            icon={Gift} 
-            color="green" 
+          <StatsCard
+            title="คูปองทั้งหมด"
+            value={coupons.length}
+            icon={Gift}
+            color="green"
           />
-          <StatsCard 
-            title="คูปองใช้งานได้" 
-            value={coupons.filter(c => c.end_date).length} 
-            icon={FileText} 
-            color="purple" 
+          <StatsCard
+            title="คูปองใช้งานได้"
+            value={coupons.filter(c => c.end_date !== undefined).length}
+            icon={FileText}
+            color="purple"
           />
+
         </div>
 
         <div className="bg-white p-4 sm:p-6 rounded-lg shadow border">
@@ -113,8 +129,8 @@ const DashboardPage: React.FC = () => {
           </h2>
           <div className="space-y-2 sm:space-y-3">
             {members.slice(0, 5).map(member => (
-              <div 
-                key={member.userid} 
+              <div
+                key={member.userid}
                 className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-3 sm:p-4 bg-gray-50 rounded gap-2 sm:gap-0"
               >
                 <div className="flex-1 min-w-0">

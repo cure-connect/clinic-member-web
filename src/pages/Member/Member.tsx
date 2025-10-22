@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Search, Eye, Edit, Trash2, Printer, Plus, X, Upload, Download } from 'lucide-react';
 import type { Member } from '../../types/index.tsx';
 import MemberCard from '../../components/UI/MemberCard.tsx';
+import api from '../../utils/axiosInstance.ts'
 
 interface NewMember {
   title: string;
@@ -11,6 +12,8 @@ interface NewMember {
   created_by: string;
   linePermission: boolean;
 }
+
+const apiUrl = import.meta.env.VITE_API_URL;
 
 const MembersPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState<string>('');
@@ -36,13 +39,18 @@ const MembersPage: React.FC = () => {
 
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [memberToDelete, setMemberToDelete] = useState<Member | null>(null);
+  const token = localStorage.getItem("clinicToken");
 
   useEffect(() => {
     const fetchMembers = async () => {
       try {
-        const res = await fetch('http://localhost:8888/api/user');
-        if (!res.ok) throw new Error('Failed to fetch members');
-        const data: Member[] = await res.json();
+        const res = await api.get(`${apiUrl}/user`, {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`
+          }
+        });
+        const data: Member[] = await res.data;
         setMembers(data);
       } catch (err) {
         console.error('Error fetching members:', err);
@@ -69,7 +77,14 @@ const MembersPage: React.FC = () => {
     if (!memberToDelete) return;
 
     try {
-      const res = await fetch(`http://localhost:8888/api/users/${memberToDelete.userid}`, { method: "DELETE" });
+      const res = await fetch(`${apiUrl}/users/${memberToDelete.userid}`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
       const result = await res.json();
 
       if (!res.ok) {
@@ -100,9 +115,12 @@ const MembersPage: React.FC = () => {
         created_by: user.username || "admin",
       };
 
-      const response = await fetch('http://localhost:8888/api/create', {
+      const response = await fetch(`${apiUrl}/create`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
         body: JSON.stringify(payload),
       });
 
@@ -156,9 +174,12 @@ const MembersPage: React.FC = () => {
         mobile_no: editMember.mobile_no
       };
 
-      const response = await fetch(`http://localhost:8888/api/update/${editMember.userid}`, {
+      const response = await fetch(`${apiUrl}/update/${editMember.userid}`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
         body: JSON.stringify(payload),
       });
 
@@ -193,8 +214,11 @@ const MembersPage: React.FC = () => {
       const formData = new FormData();
       formData.append("file", selectedFile);
 
-      const res = await fetch("http://localhost:8888/api/user/import", {
+      const res = await fetch(`${apiUrl}/user/import`, {
         method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
         body: formData,
       });
 
@@ -416,144 +440,6 @@ const MembersPage: React.FC = () => {
     printWindow.document.close();
   };
 
-
-  // const handlePrintCard = async (member: Member): Promise<void> => {
-  //   try {
-  //     const container = document.createElement('div');
-  //     container.style.position = 'fixed';
-  //     container.style.left = '-9999px';
-  //     container.style.top = '-9999px';
-  //     document.body.appendChild(container);
-
-  //     const html2canvasModule = await import('html2canvas');
-  //     const html2canvas = (html2canvasModule.default as unknown) as (element: HTMLElement, options?: any) => Promise<HTMLCanvasElement>;
-
-  //     const cardHTML = `
-  //     <div style="
-  //       width: 10.5cm;
-  //       height: 6.3cm;
-  //       padding: 0.4cm;
-  //       box-sizing: border-box;
-  //       background: linear-gradient(to right, rgb(59, 130, 246), rgb(37, 99, 235));
-  //       color: white;
-  //       border-radius: 0.5rem;
-  //       box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-  //       display: flex;
-  //       flex-direction: column;
-  //       justify-content: space-between;
-  //       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  //     ">
-  //       <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 0.5rem;">
-  //         <div>
-  //           <h2 style="font-size: 0.45cm; line-height: 0.5cm; font-weight: bold; text-transform: uppercase; letter-spacing: 0.05em; margin: 0;">
-  //             Dental Clinic
-  //           </h2>
-  //           <p style="font-size: 0.28cm; line-height: 0.32cm; opacity: 0.9; margin: 0;">
-  //             Member Card
-  //           </p>
-  //         </div>
-  //       </div>
-
-  //       <div style="display: flex; flex-direction: row; flex: 1; align-items: center; gap: 0.75rem;">
-  //         <div style="display: flex; flex-direction: column; justify-content: center; flex: 1;">
-  //           <p style="font-size: 0.33cm; line-height: 0.50cm; margin-bottom: 1.25rem;">
-  //             <span style="opacity: 0.8;">ID:</span> ${member.userid}
-  //           </p>
-
-  //           <div style="margin-bottom: 1.25rem;">
-  //             <p style="opacity: 0.8; margin-bottom: 0.125rem; font-size: 0.33cm; line-height: 0.40cm;">
-  //               ชื่อ-นามสกุล
-  //             </p>
-  //             <h3 style="font-weight: bold; font-size: 0.48cm; line-height: 0.55cm; margin: 0;">
-  //               ${member.title} ${member.firstname} ${member.lastname}
-  //             </h3>
-  //           </div>
-
-  //           <p style="font-size: 0.33cm; line-height: 0.38cm; margin: 0;">
-  //             <span style="opacity: 0.8;">Tel:</span> ${member.mobile_no}
-  //           </p>
-  //         </div>
-
-  //         <div style="
-  //           background: white;
-  //           border-radius: 0.5rem;
-  //           overflow: hidden;
-  //           display: flex;
-  //           align-items: center;
-  //           justify-content: center;
-  //           padding: 0.125rem;
-  //           width: 3.3cm;
-  //           height: 3.4cm;
-  //           flex-shrink: 0;
-  //         ">
-  //           <img
-  //             src="${member.qrcode || `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${member.userid}`}"
-  //             alt="QR Code"
-  //             style="width: 100%; height: 100%; object-fit: contain;"
-  //           />
-  //         </div>
-  //       </div>
-
-  //       <div style="
-  //         margin-top: 0.5rem;
-  //         border-top: 1px solid rgba(255, 255, 255, 0.3);
-  //         padding-top: 0.375rem;
-  //         display: flex;
-  //         justify-content: space-between;
-  //         align-items: end;
-  //       ">
-  //         <div>
-  //           <p style="opacity: 0.9; font-size: 0.28cm; line-height: 0.32cm; margin: 0;">
-  //             📞 02-123-4567
-  //           </p>
-  //           <p style="opacity: 0.9; font-size: 0.28cm; line-height: 0.32cm; margin: 0;">
-  //             Bangkok, Thailand
-  //           </p>
-  //         </div>
-  //       </div>
-  //     </div>
-  //   `;
-
-  //     container.innerHTML = cardHTML;
-
-  //     const qrImage = container.querySelector('img');
-  //     if (qrImage) {
-  //       await new Promise((resolve) => {
-  //         qrImage.onload = resolve;
-  //         qrImage.onerror = resolve;
-  //       });
-  //     }
-
-  //     const canvas = await html2canvas(container, {
-  //       scale: 3,
-  //       backgroundColor: null,
-  //       logging: false,
-  //       useCORS: true,
-  //       allowTaint: true
-  //     });
-
-  //     document.body.removeChild(container);
-
-  //     canvas.toBlob((blob: Blob | null) => {
-  //       if (blob) {
-  //         const url = URL.createObjectURL(blob);
-  //         const link = document.createElement('a');
-  //         link.href = url;
-  //         link.download = `member-card-${member.userid}-${member.firstname}-${member.lastname}.png`;
-  //         link.click();
-  //         URL.revokeObjectURL(url);
-  //         alert('ดาวน์โหลดบัตรสมาชิกเรียบร้อยแล้ว');
-  //       }
-  //     }, 'image/png');
-
-  //   } catch (error) {
-  //     console.error('Error printing card:', error);
-  //     alert('ไม่สามารถพิมพ์บัตรได้ กรุณาลองใหม่');
-  //   }
-  // };
-
-
-
   return (
     <div className="space-y-4 p-4 sm:p-6">
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 sm:gap-0">
@@ -596,7 +482,7 @@ const MembersPage: React.FC = () => {
               <table className="min-w-full table-auto">
                 <thead>
                   <tr>
-                    {['รหัสสมาชิก', 'ชื่อ - นามสกุล', 'คะแนนคงเหลือ','เบอร์โทร / ผู้สร้าง', 'บทบาท', 'วันที่สมัคร', 'จัดการ'].map((header) => (
+                    {['รหัสสมาชิก', 'ชื่อ - นามสกุล', 'คะแนนคงเหลือ', 'เบอร์โทร / ผู้สร้าง', 'บทบาท', 'วันที่สมัคร', 'จัดการ'].map((header) => (
                       <th
                         key={header}
                         className="px-4 py-3 text-left text-xs sm:text-sm font-semibold text-gray-600 uppercase tracking-wider bg-blue-200"
@@ -719,7 +605,10 @@ const MembersPage: React.FC = () => {
                   >
                     <Edit className="w-5 h-5 text-yellow-600" />
                   </button>
-                  <button className="p-2 rounded-full hover:bg-red-100 transition-colors duration-200">
+                  <button
+                    onClick={() => handleDeleteClick(member)}
+                    className="p-2 rounded-full hover:bg-red-100 transition-colors duration-200"
+                  >
                     <Trash2 className="w-5 h-5 text-red-600" />
                   </button>
                   <button

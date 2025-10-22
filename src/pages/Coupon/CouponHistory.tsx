@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import api from '../../utils/axiosInstance.ts'
 
 interface HistoryItem {
   userid: number;
@@ -13,22 +14,29 @@ interface HistoryItem {
   end_date?: string | null;
 }
 
+const apiUrl = import.meta.env.VITE_API_URL;
+
 const CouponHistoryPage: React.FC = () => {
   const [history, setHistory] = useState<HistoryItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState<'all' | 'add' | 'use'>('all');
 
-  // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
+
+  const token = localStorage.getItem("clinicToken")
 
   useEffect(() => {
     const fetchHistory = async () => {
       try {
-        const res = await fetch('http://localhost:8888/api/historypoint');
-        if (!res.ok) throw new Error('โหลดข้อมูลไม่สำเร็จ');
-        const data = await res.json();
+        const res = await api.get(`${apiUrl}/historypoint`, {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`
+          }
+        });
+        const data = await res.data;
         setHistory(data);
       } catch (error) {
         console.error('Error loading history:', error);

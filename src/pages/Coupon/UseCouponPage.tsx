@@ -1,5 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import type { Member, Coupon } from '@/types/index.tsx';
+import api from '../../utils/axiosInstance.ts';
+
+const apiUrl = import.meta.env.VITE_API_URL;
 
 const UseCouponPage: React.FC = () => {
   const [members, setMembers] = useState<Member[]>([]);
@@ -14,6 +17,7 @@ const UseCouponPage: React.FC = () => {
   const [confirmCoupon, setConfirmCoupon] = useState<Coupon | null>(null);
   const [toastMessage, setToastMessage] = useState<string>('');
   const [showToast, setShowToast] = useState<boolean>(false);
+  const token = localStorage.getItem("clinicToken");
 
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -39,29 +43,36 @@ const UseCouponPage: React.FC = () => {
   useEffect(() => {
     const fetchMembers = async () => {
       try {
-        const res = await fetch('http://localhost:8888/api/user');
-        if (!res.ok) throw new Error('Failed to fetch members');
-        const data = await res.json();
+        const res = await api.get(`${apiUrl}/user`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        const data = await res.data;
         setMembers(data);
       } catch (err) {
-        console.error('Error fetching members:', err);
+        console.error("Error fetching members:", err);
       }
     };
 
     const fetchCoupons = async () => {
       try {
-        const res = await fetch('http://localhost:8888/api/reward');
-        if (!res.ok) throw new Error('Failed to fetch coupons');
-        const data = await res.json();
+        const res = await api.get(`${apiUrl}/reward`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        const data = await res.data;
         setCoupons(data);
       } catch (err) {
-        console.error('Error fetching coupons:', err);
+        console.error("Error fetching coupons:", err);
       }
     };
 
     fetchMembers();
     fetchCoupons();
   }, []);
+
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -104,16 +115,15 @@ const UseCouponPage: React.FC = () => {
         point_used: coupon.point_require,
         created_by: username,
         used_at: new Date().toISOString(),
-        status: 'used',
+        status: "used",
       };
 
-      const res = await fetch('http://localhost:8888/api/rewardused', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
+      await api.post("/rewardused", body, {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
       });
-
-      if (!res.ok) throw new Error('Failed to record coupon usage');
 
       setMembers(prev =>
         prev.map(m =>

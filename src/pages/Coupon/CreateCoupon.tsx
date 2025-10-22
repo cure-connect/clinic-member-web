@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Plus } from 'lucide-react';
-
+import api from '../../utils/axiosInstance.ts'
 interface NewReward {
   title: string;
   description: string;
@@ -25,6 +25,7 @@ const CreateCouponPage: React.FC = () => {
   });
 
   const [loading, setLoading] = useState(false);
+  const token = localStorage.getItem("clinicToken");
 
   useEffect(() => {
     const userData = localStorage.getItem('clinicUser');
@@ -63,16 +64,14 @@ const CreateCouponPage: React.FC = () => {
         limit_per_user: newReward.limit_per_user === '' ? null : Number(newReward.limit_per_user),
       };
 
-      const res = await fetch('http://localhost:8888/api/reward', {
-        method: 'POST',
+      const res = await api.post("/reward", body, {
         headers: {
-          'Content-Type': 'application/json'
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify(body)
       });
 
-      if (!res.ok) throw new Error('Failed to create reward');
-      const data = await res.json();
+      const data = await res.data;
 
       alert('สร้างคูปองเรียบร้อยแล้ว!');
       console.log('Reward created:', data);

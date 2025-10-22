@@ -24,7 +24,7 @@ const Sidebar: React.FC<SidebarProps> = ({ user }) => {
     { id: 'scan-qr', label: 'สแกน QR', icon: Scan, roles: ['admin', 'manager'] },
     { id: 'manage-points', label: 'จัดการคะแนน', icon: Star, roles: ['admin', 'manager'] },
     { id: 'create-coupon', label: 'สร้างคูปอง', icon: Gift, roles: ['admin', 'manager'] },
-    { id: 'use-coupon', label: 'ใช้คูปอง', icon: FileText, roles: ['admin', 'manager'] },
+    { id: 'use-coupon', label: 'คูปอง', icon: FileText, roles: ['admin', 'manager'] },
     { id: 'coupon-history', label: 'ประวัติการใช้งาน', icon: History, roles: ['admin', 'manager'] },
     { id: 'users', label: 'จัดการผู้ใช้', icon: Settings, roles: ['admin', 'manager'] }
   ];
@@ -48,7 +48,7 @@ const Sidebar: React.FC<SidebarProps> = ({ user }) => {
 
       {isOpen && (
         <div
-          className="lg:hidden fixed inset-0 bg-black bg-opacity-50 z-30"
+          className="lg:hidden fixed inset-0 bg-transparent z-30"
           onClick={() => setIsOpen(false)}
         />
       )}
@@ -71,11 +71,10 @@ const Sidebar: React.FC<SidebarProps> = ({ user }) => {
               <button
                 key={item.id}
                 onClick={() => handleNavigate(item.id)}
-                className={`w-full flex items-center gap-3 px-3 py-2 text-left text-sm font-medium rounded-lg transition-colors ${
-                  isActive
+                className={`w-full flex items-center gap-3 px-3 py-2 text-left text-sm font-medium rounded-lg transition-colors ${isActive
                     ? 'bg-blue-100 text-blue-700'
                     : 'text-gray-700 hover:bg-gray-100'
-                }`}
+                  }`}
               >
                 <Icon className="w-4 h-4" />
                 {item.label}
