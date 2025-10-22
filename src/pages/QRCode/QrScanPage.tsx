@@ -1,4 +1,3 @@
-// src/pages/QRCode/QrScanPage.tsx
 import { useState } from "react";
 import QrReader from "../../components/QRCode/QR.tsx";
 
