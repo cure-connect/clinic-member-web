@@ -33,7 +33,7 @@ const QrReader: React.FC = () => {
           },
         });
       } else {
-        window.location.href = `http://localhost:5173/userinfo/${parsed.userid}`;
+        window.location.href = `${import.meta.env.VITE_FRONTEND}/userinfo/${parsed.userid}`;
       }
     } catch (err) {
       console.error("QR code ไม่ถูกต้อง", err);

@@ -15,7 +15,7 @@ const UserInfoPage: React.FC = () => {
   useEffect(() => {
     const fetchMember = async () => {
       try {
-        const res = await fetch(`https://bizrate-makers-root-fascinating.trycloudflare.com/api/users/${userid}`);
+        const res = await fetch(`${import.meta.env.VITE_API_URL}/users/${userid}`);
         if (!res.ok) throw new Error('ไม่พบผู้ใช้');
         const data = await res.json();
         setMember(data);
