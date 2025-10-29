@@ -10,6 +10,7 @@ const UseCouponPage: React.FC = () => {
   const [selectedMemberId, setSelectedMemberId] = useState<string>('');
   const [searchMember, setSearchMember] = useState<string>('');
   const [searchCoupon, setSearchCoupon] = useState<string>('');
+  const [couponFilter, setCouponFilter] = useState<'all' | 'usable' | 'expired' | 'outOfStock'>('all');
   const [showDropdown, setShowDropdown] = useState<boolean>(false);
   const [showModal, setShowModal] = useState<boolean>(false);
   const [modalCoupon, setModalCoupon] = useState<Coupon | null>(null);
@@ -21,58 +22,81 @@ const UseCouponPage: React.FC = () => {
 
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  const selectedMember = members.find(m => String(m.userid) === String(selectedMemberId));
+  const selectedMember = Array.isArray(members)
+    ? members.find(m => String(m.userid) === String(selectedMemberId))
+    : null;
 
   const couponsToShow = selectedMember
     ? coupons.filter(c => selectedMember.point >= c.point_require)
     : coupons;
 
-  const filteredCoupons = couponsToShow.filter(
-    c =>
-      c.title.toLowerCase().includes(searchCoupon.toLowerCase()) ||
-      (c.description?.toLowerCase().includes(searchCoupon.toLowerCase()) ?? false)
-  );
+  const filteredCoupons = Array.isArray(couponsToShow)
+    ? couponsToShow.filter(c => {
+        const titleMatch = c.title.toLowerCase().includes(searchCoupon.toLowerCase());
+        const descMatch = (c.description?.toLowerCase().includes(searchCoupon.toLowerCase()) ?? false);
 
-  const filteredMembers = members.filter(
-    m =>
-      m.firstname.toLowerCase().includes(searchMember.toLowerCase()) ||
-      m.lastname.toLowerCase().includes(searchMember.toLowerCase()) ||
-      String(m.userid).includes(searchMember)
-  );
+        let isExpired = false;
+        if (c.end_date) {
+          const parts = (c.end_date as unknown as string).split("/");
+          if (parts.length === 3) {
+            const day = Number(parts[0]);
+            const month = Number(parts[1]) - 1;
+            let year = Number(parts[2]);
+            if (year > 2500) year -= 543;
+            const expDate = new Date(year, month, day);
+            const today = new Date();
+            today.setHours(0,0,0,0);
+            expDate.setHours(0,0,0,0);
+            isExpired = expDate < today;
+          }
+        }
+
+        const isOutOfStock = c.limit_per_user !== null && c.limit_per_user !== undefined && c.limit_per_user <= 0;
+        const isUsable = !isExpired && !isOutOfStock;
+
+        if (couponFilter === 'usable' && !isUsable) return false;
+        if (couponFilter === 'expired' && !isExpired) return false;
+        if (couponFilter === 'outOfStock' && !isOutOfStock) return false;
+
+        return titleMatch || descMatch;
+      })
+    : [];
+
+  const filteredMembers = Array.isArray(members)
+    ? members.filter(
+      m =>
+        m.firstname.toLowerCase().includes(searchMember.toLowerCase()) ||
+        m.lastname.toLowerCase().includes(searchMember.toLowerCase()) ||
+        String(m.userid).includes(searchMember)
+    )
+    : [];
+
+  const fetchMembers = async () => {
+    try {
+      const res = await api.get(`${apiUrl}/user`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = res.data.data ?? res.data;
+      setMembers(Array.isArray(data) ? data : []);
+    } catch (err) { }
+  };
+
+  const fetchCoupons = async () => {
+    try {
+      const res = await api.get(`${apiUrl}/reward`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = res.data.data ?? res.data;
+      setCoupons(Array.isArray(data) ? data : []);
+    } catch (err) {
+      console.error("Error fetching coupons:", err);
+    }
+  };
 
   useEffect(() => {
-    const fetchMembers = async () => {
-      try {
-        const res = await api.get(`${apiUrl}/user`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-        const data = await res.data;
-        setMembers(data);
-      } catch (err) {
-        console.error("Error fetching members:", err);
-      }
-    };
-
-    const fetchCoupons = async () => {
-      try {
-        const res = await api.get(`${apiUrl}/reward`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-        const data = await res.data;
-        setCoupons(data);
-      } catch (err) {
-        console.error("Error fetching coupons:", err);
-      }
-    };
-
     fetchMembers();
     fetchCoupons();
   }, []);
-
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -134,6 +158,7 @@ const UseCouponPage: React.FC = () => {
       );
 
       showNotification(`ใช้คูปอง "${coupon.title}" เรียบร้อยแล้ว`);
+      fetchCoupons();
     } catch (err) {
       console.error('Error using coupon:', err);
       alert('เกิดข้อผิดพลาดในการบันทึกการใช้คูปอง');
@@ -160,6 +185,57 @@ const UseCouponPage: React.FC = () => {
     setShowConfirm(false);
   };
 
+  const [showEditModal, setShowEditModal] = useState<boolean>(false);
+  const [editCoupon, setEditCoupon] = useState<Coupon | null>(null);
+  const [editPoint, setEditPoint] = useState<number>(0);
+  const [editLimit, setEditLimit] = useState<number | null>(null);
+  const [editEndDate, setEditEndDate] = useState<string>('');
+
+  const openEditModal = (coupon: Coupon) => {
+    setEditCoupon(coupon);
+    setEditPoint(coupon.point_require);
+    setEditLimit(coupon.limit_per_user ?? null);
+    setEditEndDate(coupon.end_date ? String(coupon.end_date) : '');
+    setShowEditModal(true);
+  };
+
+  const closeEditModal = () => {
+    setShowEditModal(false);
+    setEditCoupon(null);
+  };
+
+  const saveCouponEdit = async () => {
+    if (!editCoupon) return;
+    let formattedEndDate: Date | null = null;
+    if (editEndDate) {
+      const [day, month, year] = editEndDate.split("/");
+      formattedEndDate = new Date(`${year}-${month}-${day}`);
+    }
+
+    try {
+      const body = {
+        description: editCoupon.description,
+        point_require: editPoint,
+        limit_per_user: editLimit,
+        end_date: formattedEndDate,
+      };
+
+      await api.patch(`${apiUrl}/reward/${editCoupon.rewardid}`, body, {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      showNotification(`แก้ไขคูปอง "${editCoupon.title}" เรียบร้อยแล้ว`);
+      closeEditModal();
+      fetchCoupons();
+    } catch (err) {
+      console.error("Error updating coupon:", err);
+      alert("เกิดข้อผิดพลาดในการบันทึกข้อมูล");
+    }
+  };
+
   return (
     <div className="space-y-6">
       {showToast && (
@@ -179,7 +255,7 @@ const UseCouponPage: React.FC = () => {
             type="text"
             placeholder="ค้นหาชื่อหรือรหัสสมาชิก..."
             className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            value={selectedMember ? `${selectedMember.firstname} ${selectedMember.lastname} (${selectedMember.userid})` : searchMember}
+            value={selectedMember ? `${selectedMember.firstname} ${selectedMember.lastname}` : searchMember}
             onChange={(e) => {
               setSearchMember(e.target.value);
               setShowDropdown(true);
@@ -199,7 +275,7 @@ const UseCouponPage: React.FC = () => {
                     setShowDropdown(false);
                   }}
                 >
-                  {member.firstname} {member.lastname} ({member.userid}) - {member.point} แต้ม
+                  {member.firstname} {member.lastname} - {member.point} แต้ม
                 </li>
               ))}
             </ul>
@@ -221,74 +297,136 @@ const UseCouponPage: React.FC = () => {
           />
         </div>
 
+        {/* Filter select */}
+        <div className="mb-4 flex items-center gap-2">
+          <label className="text-sm font-medium text-gray-700">กรองคูปอง:</label>
+          <select
+            value={couponFilter}
+            onChange={(e) => setCouponFilter(e.target.value as any)}
+            className="border px-2 py-1 rounded-lg"
+          >
+            <option value="all">ทั้งหมด</option>
+            <option value="usable">ใช้งานได้ / ไม่มีข้อจำกัด / ไม่มีวันหมดอายุ</option>
+            <option value="expired">หมดอายุแล้ว</option>
+            <option value="outOfStock">หมดแล้ว (จำนวนหมด)</option>
+          </select>
+        </div>
+
         {filteredCoupons.length === 0 ? (
           <p className="text-gray-600">ไม่มีคูปองที่ตรงกับการค้นหา</p>
         ) : (
           <div className="grid gap-4">
-            {filteredCoupons.map(coupon => (
-              <div
-                key={coupon.rewardid}
-                className="border rounded-xl p-4 flex justify-between items-center hover:bg-gray-50 transition"
-              >
-                <div>
-                  <h4 className="font-medium text-gray-800">{coupon.title}</h4>
-                  <p className="text-sm text-blue-600 font-semibold mt-1">ใช้ {coupon.point_require} แต้ม</p>
-                  <p className="text-sm text-green-600 font-semibold mt-1">
-                    จำนวนที่เหลือ {coupon.limit_per_user ?? "ไม่จำกัดจำนวน"}
-                  </p>
-                  <p className="text-sm text-gray-600 font-semibold mt-1">
-                    หมดอายุ: {coupon.end_date
-                      ? (() => {
-                        const parts = (coupon.end_date as unknown as string).split("/");
-                        if (parts.length === 3) {
-                          const day = parts[0].padStart(2, "0");
-                          const month = parts[1].padStart(2, "0");
-                          const year = parts[2];
-                          return `${day}/${month}/${year}`;
-                        }
-                        return "Invalid Date";
-                      })()
-                      : "ไม่จำกัดอายุใช้งาน"}
-                  </p>
-                </div>
+            {filteredCoupons.map(coupon => {
+              const isExpired = (() => {
+                if (!coupon.end_date) return false;
+                const parts = (coupon.end_date as unknown as string).split("/");
+                if (parts.length === 3) {
+                  const day = Number(parts[0]);
+                  const month = Number(parts[1]) - 1;
+                  let year = Number(parts[2]);
+                  if (year > 2500) year -= 543;
+                  const expDate = new Date(year, month, day);
+                  const today = new Date();
+                  today.setHours(0, 0, 0, 0);
+                  expDate.setHours(0, 0, 0, 0);
+                  return expDate < today;
+                }
+                return false;
+              })();
 
-                {selectedMember ? (
-                  <button
-                    onClick={() => openConfirm(coupon)}
-                    className={`px-4 py-2 rounded-lg text-white font-medium transition ${selectedMember.point >= coupon.point_require
-                      ? 'bg-green-500 hover:bg-green-600'
-                      : 'bg-gray-400 cursor-not-allowed'
-                      }`}
-                    disabled={selectedMember.point < coupon.point_require}
-                  >
-                    ใช้คูปอง
-                  </button>
-                ) : (
-                  <button
-                    onClick={() => openModal(coupon)}
-                    className="px-4 py-2 rounded-lg text-white font-medium bg-blue-500 hover:bg-blue-600 transition"
-                  >
-                    ดูรายละเอียด
-                  </button>
-                )}
-              </div>
-            ))}
+              const formattedEndDate = (() => {
+                if (!coupon.end_date) return "ไม่จำกัดอายุใช้งาน";
+                const parts = (coupon.end_date as unknown as string).split("/");
+                if (parts.length === 3) {
+                  const day = parts[0].padStart(2, "0");
+                  const month = parts[1].padStart(2, "0");
+                  const year = parts[2];
+                  return `${day}/${month}/${year}`;
+                }
+                return "Invalid Date";
+              })();
+
+              const isOutOfStock =
+                coupon.limit_per_user !== null &&
+                coupon.limit_per_user !== undefined &&
+                coupon.limit_per_user <= 0;
+
+              const isDisabled = isExpired || isOutOfStock;
+
+              return (
+                <div
+                  key={coupon.rewardid}
+                  className={`border rounded-xl p-4 flex justify-between items-center relative transition ${isDisabled ? 'opacity-60 bg-gray-100' : 'hover:bg-gray-50'
+                    }`}
+                >
+                  {(isDisabled) && (
+                    <div className="absolute inset-0 bg-black/50 flex items-center justify-center rounded-xl">
+                      <span className="text-white text-lg font-semibold">
+                        {isExpired ? "คูปองหมดอายุ" : "จำนวนคูปองหมด"}
+                      </span>
+                    </div>
+                  )}
+
+                  <div>
+                    <h4 className="font-medium text-gray-800">{coupon.title}</h4>
+                    <p className="text-sm text-blue-600 font-semibold mt-1">
+                      ใช้ {coupon.point_require} แต้ม
+                    </p>
+                    <p className="text-sm text-green-600 font-semibold mt-1">
+                      จำนวนที่เหลือ {coupon.limit_per_user ?? "ไม่จำกัดจำนวน"}
+                    </p>
+                    <p className="text-sm text-gray-600 font-semibold mt-1">
+                      หมดอายุ: {formattedEndDate}
+                    </p>
+                  </div>
+
+                  <div className="flex flex-col gap-2 items-end">
+                    {selectedMember ? (
+                      <button
+                        onClick={() => openConfirm(coupon)}
+                        className={`px-4 py-2 rounded-lg text-white font-medium transition ${selectedMember.point >= coupon.point_require && !isDisabled
+                          ? 'bg-green-500 hover:bg-green-600'
+                          : 'bg-gray-400 cursor-not-allowed'
+                          }`}
+                        disabled={selectedMember.point < coupon.point_require || isDisabled}
+                      >
+                        ใช้คูปอง
+                      </button>
+                    ) : (
+                      <div className="flex flex-col gap-2">
+                        <button
+                          onClick={() => openModal(coupon)}
+                          className="px-4 py-2 rounded-lg text-white font-medium bg-blue-500 hover:bg-blue-600 transition"
+                        >
+                          ดูรายละเอียด
+                        </button>
+                        {!selectedMember && !isDisabled && (
+                          <button
+                            onClick={() => openEditModal(coupon)}
+                            className="px-4 py-1 text-sm bg-yellow-400 hover:bg-yellow-500 rounded-lg text-gray-800 font-medium transition"
+                          >
+                            แก้ไข
+                          </button>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
           </div>
         )}
       </div>
 
+      {/* Modals */}
       {showModal && modalCoupon && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center"
-          style={{ backgroundColor: 'rgba(0,0,0,0.1)', backdropFilter: 'blur(4px)' }}
-        >
+        <div className="fixed inset-0 z-50 flex items-center justify-center"
+          style={{ backgroundColor: 'rgba(0,0,0,0.1)', backdropFilter: 'blur(4px)' }}>
           <div className="bg-white rounded-lg p-6 w-96 shadow-lg">
             <h3 className="text-lg font-semibold text-gray-800 mb-4">{modalCoupon.title}</h3>
             <p className="text-gray-700 mb-4">{modalCoupon.description ?? "ไม่มีรายละเอียด"}</p>
-            <button
-              onClick={closeModal}
-              className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition"
-            >
+            <button onClick={closeModal}
+              className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition">
               ปิด
             </button>
           </div>
@@ -296,30 +434,108 @@ const UseCouponPage: React.FC = () => {
       )}
 
       {showConfirm && confirmCoupon && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center"
-          style={{ backgroundColor: 'rgba(0,0,0,0.2)', backdropFilter: 'blur(3px)' }}
-        >
+        <div className="fixed inset-0 z-50 flex items-center justify-center"
+          style={{ backgroundColor: 'rgba(0,0,0,0.2)', backdropFilter: 'blur(3px)' }}>
           <div className="bg-white rounded-lg p-6 w-96 shadow-lg">
             <h3 className="text-lg font-semibold text-gray-800 mb-4">ยืนยันการใช้คูปอง</h3>
             <p className="text-gray-700 mb-6">
               คุณต้องการใช้คูปอง "{confirmCoupon.title}" ใช้ {confirmCoupon.point_require} แต้มหรือไม่?
             </p>
             <div className="flex justify-end gap-3">
+              <button onClick={closeConfirm}
+                className="px-4 py-2 bg-gray-300 text-gray-800 rounded-lg hover:bg-gray-400 transition">
+                ยกเลิก
+              </button>
+              <button onClick={() => { closeConfirm(); useCoupon(confirmCoupon); }}
+                className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition">
+                ยืนยัน
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showEditModal && editCoupon && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center"
+          style={{ backgroundColor: 'rgba(0,0,0,0.2)', backdropFilter: 'blur(3px)' }}
+        >
+          <div className="bg-white rounded-lg p-6 w-96 shadow-lg">
+            <h3 className="text-lg font-semibold text-gray-800 mb-4">
+              แก้ไขคูปอง: {editCoupon.title}
+            </h3>
+
+            <div className="space-y-3">
+              <div>
+                <label className="block text-sm font-medium text-gray-700">รายละเอียดคูปอง</label>
+                <textarea
+                  value={editCoupon.description}
+                  onChange={(e) =>
+                    setEditCoupon({ ...editCoupon, description: e.target.value })
+                  }
+                  className="w-full border px-3 py-2 rounded-lg mt-1"
+                  placeholder="กรอกรายละเอียดคูปอง"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700">แต้มที่ใช้</label>
+                <input
+                  type="text"
+                  value={editPoint === 0 ? '' : editPoint}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    if (/^\d*$/.test(val)) {
+                      setEditPoint(val === '' ? 0 : Number(val));
+                    }
+                  }}
+                  className="w-full border px-3 py-2 rounded-lg mt-1"
+                  placeholder="กรอกจำนวนแต้มที่ใช้"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700">จำนวนจำกัด</label>
+                <input
+                  type="text"
+                  value={editLimit === null ? '' : editLimit}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    if (/^\d*$/.test(val)) {
+                      setEditLimit(val === '' ? null : Number(val));
+                    }
+                  }}
+                  className="w-full border px-3 py-2 rounded-lg mt-1"
+                  placeholder="ไม่จำกัดจำนวน"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700">
+                  วันที่หมดอายุ (DD/MM/YYYY)
+                </label>
+                <input
+                  type="text"
+                  value={editEndDate}
+                  onChange={(e) => setEditEndDate(e.target.value)}
+                  className="w-full border px-3 py-2 rounded-lg mt-1"
+                  placeholder="เช่น 31/12/2025"
+                />
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-3 mt-6">
               <button
-                onClick={closeConfirm}
+                onClick={closeEditModal}
                 className="px-4 py-2 bg-gray-300 text-gray-800 rounded-lg hover:bg-gray-400 transition"
               >
                 ยกเลิก
               </button>
               <button
-                onClick={() => {
-                  closeConfirm();
-                  useCoupon(confirmCoupon);
-                }}
+                onClick={saveCouponEdit}
                 className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition"
               >
-                ยืนยัน
+                บันทึก
               </button>
             </div>
           </div>

@@ -2,7 +2,6 @@ import React from 'react';
 import type { MemberCardProps } from '../../types/index.tsx';
 
 const MemberCard: React.FC<MemberCardProps> = ({ member, showPrint = false }) => {
-  console.log('member', member)
   return (
     <div
       className={`bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg shadow-lg flex flex-col justify-between ${showPrint ? 'print-card' : ''

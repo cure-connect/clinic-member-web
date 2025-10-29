@@ -70,11 +70,10 @@ const CreateCouponPage: React.FC = () => {
           Authorization: `Bearer ${token}`,
         },
       });
-
-      const data = await res.data;
+      
+      await res.data;
 
       alert('สร้างคูปองเรียบร้อยแล้ว!');
-      console.log('Reward created:', data);
 
       setNewReward(prev => ({
         ...prev,
