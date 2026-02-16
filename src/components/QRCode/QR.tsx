@@ -17,28 +17,34 @@ const QrReader: React.FC = () => {
     setHasScanned(true);
 
     try {
-      const parsed = JSON.parse(rawValue);
+      const url = new URL(rawValue);
+      const pathSegments = url.pathname.split("/");
+      const userid = pathSegments[pathSegments.length - 1];
+
+      if (!userid) throw new Error("ไม่พบ user id ใน URL");
+
       const storedUser = localStorage.getItem("clinicUser");
       if (!storedUser) throw new Error("กรุณาเข้าสู่ระบบก่อนสแกน");
+
       const currentUser = JSON.parse(storedUser);
 
       if (currentUser.role === "admin" || currentUser.role === "manager") {
         navigate("/manage-points", {
           state: {
-            userid: parsed.userid,
+            userid,
             fromQR: true,
           },
         });
       } else {
-        window.location.href = `${import.meta.env.VITE_FRONTEND}/userinfo/${parsed.userid}`;
+        window.location.href = rawValue;
       }
+
     } catch (err) {
       console.error("QR code ไม่ถูกต้อง", err);
-      alert("QR code ไม่ถูกต้อง หรือข้อมูลไม่ใช่ JSON");
+      alert("QR code ไม่ถูกต้อง หรือไม่ใช่ URL ที่ถูกต้อง");
       setHasScanned(false);
     }
   };
-
 
   const handleError = (error: unknown) => {
     console.error("เกิดข้อผิดพลาดในการสแกน:", error);
