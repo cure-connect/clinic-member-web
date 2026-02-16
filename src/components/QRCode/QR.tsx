@@ -26,9 +26,6 @@ const QrReader: React.FC = () => {
         navigate("/manage-points", {
           state: {
             userid: parsed.userid,
-            firstname: parsed.firstname,
-            lastname: parsed.lastname,
-            username: parsed.username,
             fromQR: true,
           },
         });
