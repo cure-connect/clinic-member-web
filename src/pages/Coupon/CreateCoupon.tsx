@@ -94,7 +94,7 @@ const CreateCouponPage: React.FC = () => {
   };
 
   return (
-    <div className="bg-white rounded-lg shadow border p-6">
+    <div className="bg-white rounded-lg shadow p-6">
       <h2 className="text-xl font-semibold text-gray-800 mb-6">สร้างคูปอง</h2>
 
       <form onSubmit={handleSubmit} className="space-y-4">
@@ -103,7 +103,7 @@ const CreateCouponPage: React.FC = () => {
           <input
             type="text"
             required
-            className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 shadow rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             value={newReward.title}
             onChange={handleInputChange('title')}
           />
@@ -114,7 +114,7 @@ const CreateCouponPage: React.FC = () => {
           <textarea
             required
             rows={3}
-            className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 shadow rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             value={newReward.description}
             onChange={handleInputChange('description')}
           />
@@ -129,7 +129,7 @@ const CreateCouponPage: React.FC = () => {
               pattern="[0-9]*"
               placeholder="กรอกเฉพาะตัวเลข"
               required
-              className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 shadow rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               value={newReward.point_require}
               onChange={handleInputChange('point_require')}
             />
@@ -142,7 +142,7 @@ const CreateCouponPage: React.FC = () => {
               inputMode="numeric"
               pattern="[0-9]*"
               placeholder="กรอกเฉพาะตัวเลข"
-              className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 shadow rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               value={newReward.limit_per_user}
               onChange={handleInputChange('limit_per_user')}
             />
@@ -154,7 +154,7 @@ const CreateCouponPage: React.FC = () => {
             <label className="block text-sm font-medium text-gray-700 mb-2">วันเริ่มต้น (ไม่จำเป็น)</label>
             <input
               type="date"
-              className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 shadow rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               value={newReward.start_date}
               onChange={handleInputChange('start_date')}
             />
@@ -164,7 +164,7 @@ const CreateCouponPage: React.FC = () => {
             <label className="block text-sm font-medium text-gray-700 mb-2">วันหมดอายุ (ไม่จำเป็น)</label>
             <input
               type="date"
-              className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 shadow rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               value={newReward.end_date}
               onChange={handleInputChange('end_date')}
             />

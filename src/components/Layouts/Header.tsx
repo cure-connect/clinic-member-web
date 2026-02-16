@@ -8,7 +8,7 @@ interface HeaderProps {
 }
 
 const Header: React.FC<HeaderProps> = ({ user, onLogout }) => (
-  <header className="bg-white shadow border-b">
+  <header className="bg-white shadow">
     <div className="px-6 py-4">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-gray-800">ระบบจัดการสมาชิกคลินิก</h1>

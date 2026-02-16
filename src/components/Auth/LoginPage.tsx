@@ -22,7 +22,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
 
     setTimeout(async () => {
       try {
-        const response = await fetch(`${import.meta.env.VITE_AUTH_LOGIN}/login`, {
+        const response = await fetch(`${import.meta.env.VITE_AUTH_URL}/login`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({

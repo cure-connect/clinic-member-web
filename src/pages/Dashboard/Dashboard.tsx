@@ -32,7 +32,7 @@ const StatsCard: React.FC<StatsCardProps> = ({ title, value, icon: Icon, color }
   };
 
   return (
-    <div className="bg-white p-4 sm:p-6 rounded-lg shadow border">
+    <div className="bg-white p-4 sm:p-6 rounded-lg shadow">
       <div className="flex items-center justify-between">
         <div className="flex-1">
           <p className="text-xs sm:text-sm text-gray-600 mb-1">{title}</p>
@@ -123,7 +123,7 @@ const DashboardPage: React.FC = () => {
 
         </div>
 
-        <div className="bg-white p-4 sm:p-6 rounded-lg shadow border">
+        <div className="bg-white p-4 sm:p-6 rounded-lg shadow">
           <h2 className="text-base sm:text-lg font-semibold text-gray-800 mb-3 sm:mb-4">
             สมาชิกล่าสุด
           </h2>

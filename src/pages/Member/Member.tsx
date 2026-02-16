@@ -462,11 +462,11 @@ const MembersPage: React.FC = () => {
         </div>
 
         <div className="relative w-full sm:w-64">
-          <Search className="absolute left-3 top-3 w-4 h-4 text-gray-400" />
+          <Search className="absolute left-3 top-3 w-4 h-4 text-gray-500" />
           <input
             type="text"
             placeholder="ค้นหาสมาชิก..."
-            className="pl-10 pr-4 py-2 w-full border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base"
+            className="pl-10 pr-4 py-2 w-full shadow rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
@@ -492,7 +492,7 @@ const MembersPage: React.FC = () => {
                     ))}
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-400">
+                <tbody className="bg-white divide-y divide-gray-200">
                   {filteredMembers.map((member) => (
                     <tr key={member.userid} className="hover:bg-gray-50 transition-colors duration-150">
                       <td className="px-4 py-3 text-sm text-gray-700">{member.userid}</td>

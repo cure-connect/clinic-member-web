@@ -96,7 +96,7 @@ const CouponHistoryPage: React.FC = () => {
             setSearchTerm(e.target.value);
             setCurrentPage(1);
           }}
-          className="flex-1 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          className="flex-1 px-4 py-2 shadow rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
         />
         <div className="relative inline-block w-48">
           <select
@@ -189,20 +189,20 @@ const CouponHistoryPage: React.FC = () => {
             <button
               onClick={handlePrev}
               disabled={currentPage === 1}
-              className={`px-3 py-2 rounded-lg border ${currentPage === 1
+              className={`px-3 py-2 rounded-lg shadow ${currentPage === 1
                   ? 'bg-gray-200 cursor-not-allowed'
                   : 'bg-white hover:bg-blue-100'
                 }`}
             >
               &lt;
             </button>
-            <span className="px-3 py-2 border rounded-lg bg-gray-50">
+            <span className="px-3 py-2 shadow rounded-lg bg-gray-50">
               {currentPage} / {totalPages}
             </span>
             <button
               onClick={handleNext}
               disabled={currentPage === totalPages}
-              className={`px-3 py-2 rounded-lg border ${currentPage === totalPages
+              className={`px-3 py-2 rounded-lg shadow ${currentPage === totalPages
                   ? 'bg-gray-200 cursor-not-allowed'
                   : 'bg-white hover:bg-blue-100'
                 }`}

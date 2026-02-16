@@ -231,7 +231,7 @@ const PointsManagementPage: React.FC = () => {
             onChange={(e) => setSearchTerm(e.target.value)}
             onFocus={() => !isFromQR && setOpenDropdown(true)}
             disabled={isFromQR}
-            className={`w-full pl-10 pr-3 py-3 border rounded-lg bg-white focus:ring-2 focus:ring-blue-400 ${isFromQR ? "bg-gray-100 cursor-not-allowed" : ""
+            className={`w-full pl-10 pr-3 py-3 shadow rounded-lg bg-white focus:ring-2 focus:ring-blue-400 ${isFromQR ? "bg-gray-100 cursor-not-allowed" : ""
               }`}
           />
         </div>

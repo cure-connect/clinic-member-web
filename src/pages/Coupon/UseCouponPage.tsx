@@ -246,7 +246,7 @@ const UseCouponPage: React.FC = () => {
         </div>
       )}
 
-      <div className="bg-white rounded-lg shadow border p-6">
+      <div className="bg-white rounded-lg shadow p-6">
         <h2 className="text-xl font-semibold text-gray-800 mb-6">ใช้คูปอง</h2>
 
         <div className="mb-6 relative" ref={dropdownRef}>
@@ -254,7 +254,7 @@ const UseCouponPage: React.FC = () => {
           <input
             type="text"
             placeholder="ค้นหาชื่อหรือรหัสสมาชิก..."
-            className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 shadow rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             value={selectedMember ? `${selectedMember.firstname} ${selectedMember.lastname}` : searchMember}
             onChange={(e) => {
               setSearchMember(e.target.value);
@@ -291,7 +291,7 @@ const UseCouponPage: React.FC = () => {
           <input
             type="text"
             placeholder="ค้นหาคูปอง..."
-            className="px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="px-3 py-2 shadow rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             value={searchCoupon}
             onChange={(e) => setSearchCoupon(e.target.value)}
           />
@@ -356,7 +356,7 @@ const UseCouponPage: React.FC = () => {
               return (
                 <div
                   key={coupon.rewardid}
-                  className={`border rounded-xl p-4 flex justify-between items-center relative transition ${isDisabled ? 'opacity-60 bg-gray-100' : 'hover:bg-gray-50'
+                  className={`shadow rounded-xl p-4 flex justify-between items-center relative transition ${isDisabled ? 'opacity-60 bg-gray-100' : 'hover:bg-gray-50'
                     }`}
                 >
                   {(isDisabled) && (
