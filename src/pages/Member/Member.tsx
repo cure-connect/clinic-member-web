@@ -142,11 +142,26 @@ const MembersPage: React.FC = () => {
         linePermission: false
       });
 
+      const fetchMembers = async () => {
+        try {
+          const res = await api.get(`${apiUrl}/user`, {
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`
+            }
+          });
+          const data: Member[] = await res.data;
+          setMembers(data);
+        } catch (err) {
+          console.error('Error fetching members:', err);
+        } finally {
+          setLoading(false);
+        }
+      };
+
       showNotification('สร้างสมาชิกเรียบร้อยแล้ว', 'success');
       setIsModalOpen(false);
-      setTimeout(() => {
-        window.location.reload();
-      }, 1000);
+      await fetchMembers();
     } catch (err: any) {
       showNotification(err.message || 'เกิดข้อผิดพลาด กรุณาลองใหม่', 'error');
     } finally {
@@ -194,9 +209,27 @@ const MembersPage: React.FC = () => {
 
       if (!response.ok) throw new Error('ไม่สามารถแก้ไขข้อมูลได้');
 
+      const fetchMembers = async () => {
+        try {
+          const res = await api.get(`${apiUrl}/user`, {
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`
+            }
+          });
+          const data: Member[] = await res.data;
+          setMembers(data);
+        } catch (err) {
+          console.error('Error fetching members:', err);
+        } finally {
+          setLoading(false);
+        }
+      };
+
       setIsEditModalOpen(false);
       setEditMember(null);
       showNotification('แก้ไขข้อมูลเรียบร้อยแล้ว', 'success');
+      await fetchMembers();
     } catch (err: any) {
       showNotification(err.message || 'เกิดข้อผิดพลาด กรุณาลองใหม่', 'error');
     } finally {
