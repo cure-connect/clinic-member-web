@@ -7,9 +7,6 @@ import Header from "./components/Layouts/Header.tsx";
 import Sidebar from "./components/Layouts/Sidebar.tsx";
 import DashboardPage from "./pages/Dashboard/Dashboard.tsx";
 import MembersPage from "./pages/Member/Member.tsx";
-import CreateMemberPage from "./pages/Member/CreateMemberPage.tsx";
-import ImportMembersPage from "./pages/Member/ImportMember.tsx";
-import PrintCardPage from "./pages/Member/PrintCardPage.tsx";
 import PointsManagementPage from "./pages/Points/PointManagePage.tsx";
 import CreateCouponPage from "./pages/Coupon/CreateCoupon.tsx";
 import UseCouponPage from "./pages/Coupon/UseCouponPage.tsx";
@@ -97,11 +94,11 @@ const App: React.FC = () => {
               <Route path="/" element={<Navigate to="/dashboard" replace />} />
               <Route path="/dashboard" element={<DashboardPage />} />
               <Route path="/members" element={<MembersPage />} />
-              <Route path="/create-member" element={<CreateMemberPage />} />
+              {/* <Route path="/create-member" element={<CreateMemberPage />} />
               <Route
                 path="/import-members"
                 element={isManagerOrAdmin ? <ImportMembersPage /> : <AccessDenied />}
-              />
+              /> */}
               <Route path="/scan-qr" element={<ScanQRPage />} />
               <Route path="/manage-points" element={<PointsManagementPage />} />
               <Route
@@ -110,7 +107,7 @@ const App: React.FC = () => {
               />
               <Route path="/use-coupon" element={<UseCouponPage />} />
               <Route path="/coupon-history" element={<CouponHistoryPage />} />
-              <Route path="/print-card" element={<PrintCardPage />} />
+              {/* <Route path="/print-card" element={<PrintCardPage />} /> */}
               <Route
                 path="/users"
                 element={isManagerOrAdmin ? <UsersManagementPage /> : <AccessDenied />}

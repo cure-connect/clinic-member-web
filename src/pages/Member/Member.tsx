@@ -39,6 +39,10 @@ const MembersPage: React.FC = () => {
 
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [memberToDelete, setMemberToDelete] = useState<Member | null>(null);
+  const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
+  const [toastType, setToastType] = useState<'success' | 'error'>('success');
+
   const token = localStorage.getItem("clinicToken");
 
   useEffect(() => {
@@ -95,11 +99,10 @@ const MembersPage: React.FC = () => {
       setMembers((prev) => prev.filter((m) => m.userid !== memberToDelete.userid));
       setShowDeleteModal(false);
       setMemberToDelete(null);
-      alert("ลบสมาชิกเรียบร้อยแล้ว");
-      window.location.reload();
-    } catch (error) {
+      showNotification("ลบสมาชิกเรียบร้อยแล้ว", "success");
+    } catch (error: any) {
       console.error("Error deleting member:", error);
-      alert("ไม่สามารถลบสมาชิกได้");
+      showNotification(error.message || "เกิดข้อผิดพลาดในการลบสมาชิก", "error");
     }
   };
 
@@ -126,7 +129,10 @@ const MembersPage: React.FC = () => {
 
       if (!response.ok) throw new Error('ไม่สามารถสร้างสมาชิกได้');
 
-      await response.json();
+      const createdMember = await response.json();
+
+      setMembers(prev => [...prev, createdMember]);
+
       setNewMember({
         title: '',
         firstname: '',
@@ -135,11 +141,14 @@ const MembersPage: React.FC = () => {
         created_by: '',
         linePermission: false
       });
-      alert('สร้างสมาชิกเรียบร้อยแล้ว');
+
+      showNotification('สร้างสมาชิกเรียบร้อยแล้ว', 'success');
       setIsModalOpen(false);
-      window.location.reload();
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000);
     } catch (err: any) {
-      alert(err.message || 'เกิดข้อผิดพลาด กรุณาลองใหม่');
+      showNotification(err.message || 'เกิดข้อผิดพลาด กรุณาลองใหม่', 'error');
     } finally {
       setIsLoading(false);
     }
@@ -185,12 +194,11 @@ const MembersPage: React.FC = () => {
 
       if (!response.ok) throw new Error('ไม่สามารถแก้ไขข้อมูลได้');
 
-      alert('แก้ไขข้อมูลเรียบร้อยแล้ว');
       setIsEditModalOpen(false);
       setEditMember(null);
-      window.location.reload();
+      showNotification('แก้ไขข้อมูลเรียบร้อยแล้ว', 'success');
     } catch (err: any) {
-      alert(err.message || 'เกิดข้อผิดพลาด กรุณาลองใหม่');
+      showNotification(err.message || 'เกิดข้อผิดพลาด กรุณาลองใหม่', 'error');
     } finally {
       setIsLoading(false);
     }
@@ -205,7 +213,7 @@ const MembersPage: React.FC = () => {
 
   const handleImportFile = async (): Promise<void> => {
     if (!selectedFile) {
-      alert("กรุณาเลือกไฟล์ก่อน");
+      showNotification("กรุณาเลือกไฟล์ก่อน", "error");
       return;
     }
 
@@ -224,17 +232,17 @@ const MembersPage: React.FC = () => {
 
       if (!res.ok) {
         const err = await res.json();
-        alert("เกิดข้อผิดพลาด: " + err.message);
+        showNotification("เกิดข้อผิดพลาด: " + err.message, "error");
+
         return;
       }
 
       const data = await res.json();
-      alert(`นำเข้าข้อมูลสำเร็จ! จำนวนสมาชิก: ${data.data.length}`);
+      showNotification(`นำเข้าข้อมูลสำเร็จ! จำนวนสมาชิก: ${data.data.length}`, "success");
       setIsImportModalOpen(false);
-      window.location.reload();
     } catch (error) {
       console.error("Error importing file:", error);
-      alert("เกิดข้อผิดพลาดในการนำเข้าข้อมูล");
+      showNotification("เกิดข้อผิดพลาดในการนำเข้าข้อมูล", "error");
     } finally {
       setIsLoading(false);
       setSelectedFile(null);
@@ -399,7 +407,7 @@ const MembersPage: React.FC = () => {
       <div class="card">
         <div class="header">
           <div>
-            <h2>Dental Clinic</h2>
+            <h2>Wanna Clinic</h2>
             <p>Member Card</p>
           </div>
         </div>
@@ -420,8 +428,8 @@ const MembersPage: React.FC = () => {
         </div>
         <div class="footer">
           <div>
-            <p class="footer-text">02-123-4567</p>
-            <p class="footer-text">Bangkok, Thailand</p>
+            <p class="footer-text">เบอร์โทรศัพท์: 099-394-9365</p>
+            <p class="footer-text">697 80 ถนน สุรชัย ตำบล มะขามหย่ง อำเภอเมืองชลบุรี ชลบุรี 20000</p>
           </div>
         </div>
       </div>
@@ -440,8 +448,70 @@ const MembersPage: React.FC = () => {
     printWindow.document.close();
   };
 
+  const showNotification = (message: string, type: 'success' | 'error') => {
+    setToastMessage(message);
+    setToastType(type);
+    setShowToast(true);
+    setTimeout(() => setShowToast(false), 3000);
+  };
+
+
   return (
     <div className="space-y-4 p-4 sm:p-6">
+      {showToast && (
+        <div className="fixed inset-0 flex items-start justify-end px-4 py-6 pointer-events-none sm:p-6 z-50">
+          <div className="w-full max-w-sm pointer-events-auto">
+            <div className="rounded-lg bg-white shadow-lg ring-1 ring-black ring-opacity-5 overflow-hidden">
+              <div className="p-4">
+                <div className="flex items-start">
+
+                  <div className="flex-shrink-0">
+                    {toastType === 'success' ? (
+                      <svg className="h-6 w-6 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                      </svg>
+                    ) : (
+                      <svg className="h-6 w-6 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    )}
+                  </div>
+
+                  <div className="ml-3 w-0 flex-1 pt-0.5">
+                    <p className="text-sm font-medium text-gray-900">
+                      {toastType === 'success' ? 'สำเร็จ' : 'เกิดข้อผิดพลาด'}
+                    </p>
+                    <p className="mt-1 text-sm text-gray-500">
+                      {toastMessage}
+                    </p>
+                  </div>
+
+                  <div className="ml-4 flex-shrink-0 flex">
+                    <button
+                      onClick={() => setShowToast(false)}
+                      className="bg-white rounded-md inline-flex text-gray-400 hover:text-gray-500 focus:outline-none"
+                    >
+                      <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path
+                          fillRule="evenodd"
+                          d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 
+                    111.414 1.414L11.414 10l4.293 4.293a1 1 
+                    01-1.414 1.414L10 11.414l-4.293 4.293a1 1 
+                    01-1.414-1.414L8.586 10 4.293 5.707a1 1 
+                    010-1.414z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                    </button>
+                  </div>
+
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 sm:gap-0">
         <div className="flex items-center gap-3">
           <h2 className="text-xl font-semibold text-gray-800">จัดการข้อมูลสมาชิก</h2>

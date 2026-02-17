@@ -19,7 +19,7 @@ const MemberCard: React.FC<MemberCardProps> = ({ member, showPrint = false }) =>
             className="font-bold uppercase tracking-wide"
             style={{ fontSize: '0.38cm', lineHeight: '0.42cm' }}
           >
-            Dental Clinic
+            Wanna Clinic
           </h2>
           <p
             className="opacity-90"
@@ -75,13 +75,13 @@ const MemberCard: React.FC<MemberCardProps> = ({ member, showPrint = false }) =>
       className="opacity-90"
       style={{ fontSize: '0.24cm', lineHeight: '0.32cm' }}
     >
-      02-123-4567
+      เบอร์โทรศัพท์: 099-394-9365
     </p>
     <p
       className="opacity-90"
       style={{ fontSize: '0.24cm', lineHeight: '0.32cm' }}
     >
-      Bangkok, Thailand
+      697 80 ถนน สุรชัย ตำบล มะขามหย่ง อำเภอเมืองชลบุรี ชลบุรี 20000
     </p>
   </div>
 </div>

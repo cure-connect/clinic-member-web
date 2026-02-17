@@ -35,6 +35,10 @@ const PointsManagementPage: React.FC = () => {
   const [currentUser, setCurrentUser] = useState<string>("");
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [openDropdown, setOpenDropdown] = useState<boolean>(false);
+  const [toastMessage, setToastMessage] = useState<string>("");
+  const [toastType, setToastType] = useState<"success" | "error">("success");
+  const [showToast, setShowToast] = useState<boolean>(false);
+
   const token = localStorage.getItem("clinicToken");
 
   useEffect(() => {
@@ -77,7 +81,7 @@ const PointsManagementPage: React.FC = () => {
         }
       } catch (err) {
         console.error(err);
-        alert("เกิดข้อผิดพลาดในการโหลดข้อมูล");
+        showNotification("เกิดข้อผิดพลาดในการโหลดข้อมูล", "error");
       } finally {
         setLoading(false);
       }
@@ -117,10 +121,12 @@ const PointsManagementPage: React.FC = () => {
       );
       setPendingPoints(0);
       setConfirmModal(false);
-      alert("อัปเดตคะแนนสำเร็จ!");
+      showNotification("อัปเดตคะแนนสำเร็จ!", "success");
+
     } catch (err) {
       console.error(err);
-      alert("เกิดข้อผิดพลาดในการอัปเดตคะแนน");
+      showNotification("เกิดข้อผิดพลาดในการอัปเดตคะแนน", "error");
+
     }
   };
 
@@ -134,12 +140,14 @@ const PointsManagementPage: React.FC = () => {
     const selectedMember = members.find(m => String(m.userid) === String(selectedMemberId));
 
     if (!selectedMember) {
-      alert("กรุณาเลือกสมาชิกก่อนใช้คูปอง");
+      showNotification("กรุณาเลือกสมาชิกก่อนใช้คูปอง", "error");
+
       return;
     }
 
     if (selectedMember.point < couponToUse.point_require) {
-      alert("แต้มไม่เพียงพอในการใช้คูปองนี้");
+      showNotification("แต้มไม่เพียงพอในการใช้คูปองนี้", "error");
+
       return;
     }
 
@@ -168,10 +176,12 @@ const PointsManagementPage: React.FC = () => {
         )
       );
 
-      alert(`ใช้คูปอง "${couponToUse.title}" เรียบร้อยแล้ว`);
+      showNotification(`ใช้คูปอง "${couponToUse.title}" เรียบร้อยแล้ว`, "success");
+
     } catch (err) {
       console.error("Error using coupon:", err);
-      alert("เกิดข้อผิดพลาดในการบันทึกการใช้คูปอง");
+      showNotification("เกิดข้อผิดพลาดในการบันทึกการใช้คูปอง", "error");
+
     } finally {
       setConfirmCouponModal(false);
       setCouponToUse(null);
@@ -193,8 +203,70 @@ const PointsManagementPage: React.FC = () => {
 
   if (loading) return <div className="p-6">กำลังโหลดข้อมูล...</div>;
 
+  const showNotification = (message: string, type: "success" | "error") => {
+    setToastMessage(message);
+    setToastType(type);
+    setShowToast(true);
+    setTimeout(() => setShowToast(false), 3000);
+  };
+
+
   return (
     <div className="p-6 max-w-2xl mx-auto space-y-6">
+      {showToast && (
+        <div className="fixed inset-0 flex items-start justify-end px-4 py-6 pointer-events-none sm:p-6 z-50">
+          <div className="w-full max-w-sm pointer-events-auto">
+            <div className="rounded-lg bg-white shadow-lg ring-1 ring-black ring-opacity-5 overflow-hidden">
+              <div className="p-4">
+                <div className="flex items-start">
+
+                  <div className="flex-shrink-0">
+                    {toastType === 'success' ? (
+                      <svg className="h-6 w-6 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                      </svg>
+                    ) : (
+                      <svg className="h-6 w-6 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    )}
+                  </div>
+
+                  <div className="ml-3 w-0 flex-1 pt-0.5">
+                    <p className="text-sm font-medium text-gray-900">
+                      {toastType === 'success' ? 'สำเร็จ' : 'เกิดข้อผิดพลาด'}
+                    </p>
+                    <p className="mt-1 text-sm text-gray-500">
+                      {toastMessage}
+                    </p>
+                  </div>
+
+                  <div className="ml-4 flex-shrink-0 flex">
+                    <button
+                      onClick={() => setShowToast(false)}
+                      className="bg-white rounded-md inline-flex text-gray-400 hover:text-gray-500 focus:outline-none"
+                    >
+                      <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path
+                          fillRule="evenodd"
+                          d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 
+                    111.414 1.414L11.414 10l4.293 4.293a1 1 
+                    01-1.414 1.414L10 11.414l-4.293 4.293a1 1 
+                    01-1.414-1.414L8.586 10 4.293 5.707a1 1 
+                    010-1.414z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                    </button>
+                  </div>
+
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           {isFromQR && (

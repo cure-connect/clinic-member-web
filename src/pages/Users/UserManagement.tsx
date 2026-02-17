@@ -31,6 +31,11 @@ const UsersManagementPage: React.FC = () => {
     role: "manager",
   });
 
+  const [toastMessage, setToastMessage] = useState("");
+  const [toastType, setToastType] = useState<"success" | "error">("success");
+  const [showToast, setShowToast] = useState(false);
+
+
   const token = localStorage.getItem("clinicToken");
   const clinicUser = localStorage.getItem("clinicUser");
   const parsedUser = clinicUser ? JSON.parse(clinicUser) : null;
@@ -71,7 +76,8 @@ const UsersManagementPage: React.FC = () => {
     if (!userToDelete) return;
 
     if (userToDelete.role === "manager") {
-      alert("ไม่สามารถลบ Manager ได้");
+      showNotification("ไม่สามารถลบ Manager ได้", "error");
+
       setShowDeleteModal(false);
       return;
     }
@@ -87,7 +93,8 @@ const UsersManagementPage: React.FC = () => {
 
       if (!res.ok) {
         const result = await res.json();
-        alert(result.message || "เกิดข้อผิดพลาดในการลบผู้ใช้");
+        showNotification(result.message || "เกิดข้อผิดพลาดในการลบผู้ใช้", "error");
+
         return;
       }
 
@@ -100,13 +107,14 @@ const UsersManagementPage: React.FC = () => {
       setTimeout(() => setShowSuccessModal(false), 2000);
     } catch (error) {
       console.error("Error deleting user:", error);
-      alert("ไม่สามารถลบผู้ใช้ได้");
+      showNotification("ไม่สามารถลบผู้ใช้ได้", "error");
+
     }
   };
 
   const handleCreateUser = async () => {
     if (!newUser.username || !newUser.password) {
-      alert("กรุณากรอกชื่อผู้ใช้และรหัสผ่าน");
+      showNotification("กรุณากรอกชื่อผู้ใช้และรหัสผ่าน", "error");
       return;
     }
 
@@ -126,7 +134,7 @@ const UsersManagementPage: React.FC = () => {
 
       if (!res.ok) {
         const result = await res.json();
-        alert(result.message || "เกิดข้อผิดพลาดในการสร้างผู้ใช้");
+        showNotification(result.message || "เกิดข้อผิดพลาดในการสร้างผู้ใช้", "error");
         return;
       }
 
@@ -148,12 +156,73 @@ const UsersManagementPage: React.FC = () => {
       fetchStaffs();
     } catch (error) {
       console.error("Error creating user:", error);
-      alert("ไม่สามารถสร้างผู้ใช้ได้");
+      showNotification("ไม่สามารถสร้างผู้ใช้ได้", "error");
     }
   };
 
+  const showNotification = (message: string, type: "success" | "error") => {
+  setToastMessage(message);
+  setToastType(type);
+  setShowToast(true);
+  setTimeout(() => setShowToast(false), 3000);
+};
+
+
   return (
     <div className="space-y-4 p-4 sm:p-6">
+            {showToast && (
+        <div className="fixed inset-0 flex items-start justify-end px-4 py-6 pointer-events-none sm:p-6 z-50">
+          <div className="w-full max-w-sm pointer-events-auto">
+            <div className="rounded-lg bg-white shadow-lg ring-1 ring-black ring-opacity-5 overflow-hidden">
+              <div className="p-4">
+                <div className="flex items-start">
+
+                  <div className="flex-shrink-0">
+                    {toastType === 'success' ? (
+                      <svg className="h-6 w-6 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                      </svg>
+                    ) : (
+                      <svg className="h-6 w-6 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    )}
+                  </div>
+
+                  <div className="ml-3 w-0 flex-1 pt-0.5">
+                    <p className="text-sm font-medium text-gray-900">
+                      {toastType === 'success' ? 'สำเร็จ' : 'เกิดข้อผิดพลาด'}
+                    </p>
+                    <p className="mt-1 text-sm text-gray-500">
+                      {toastMessage}
+                    </p>
+                  </div>
+
+                  <div className="ml-4 flex-shrink-0 flex">
+                    <button
+                      onClick={() => setShowToast(false)}
+                      className="bg-white rounded-md inline-flex text-gray-400 hover:text-gray-500 focus:outline-none"
+                    >
+                      <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path
+                          fillRule="evenodd"
+                          d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 
+                    111.414 1.414L11.414 10l4.293 4.293a1 1 
+                    01-1.414 1.414L10 11.414l-4.293 4.293a1 1 
+                    01-1.414-1.414L8.586 10 4.293 5.707a1 1 
+                    010-1.414z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                    </button>
+                  </div>
+
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 sm:gap-0">
         <h2 className="text-xl font-semibold text-gray-800">จัดการผู้ใช้งาน</h2>
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
@@ -206,8 +275,8 @@ const UsersManagementPage: React.FC = () => {
                     <td className="px-4 py-3 text-sm">
                       <span
                         className={`px-3 py-1 rounded-full text-xs ${user.role === "admin"
-                            ? "bg-green-100 text-green-800"
-                            : "bg-yellow-100 text-yellow-800"
+                          ? "bg-green-100 text-green-800"
+                          : "bg-yellow-100 text-yellow-800"
                           }`}
                       >
                         {user.role}
@@ -257,8 +326,8 @@ const UsersManagementPage: React.FC = () => {
                   <span className="text-xs text-gray-500 font-medium">บทบาท</span>
                   <span
                     className={`px-3 py-1 rounded-full text-xs font-medium ${user.role === "admin"
-                        ? "bg-green-100 text-green-800"
-                        : "bg-yellow-100 text-yellow-800"
+                      ? "bg-green-100 text-green-800"
+                      : "bg-yellow-100 text-yellow-800"
                       }`}
                   >
                     {user.role}

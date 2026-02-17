@@ -18,6 +18,8 @@ const UseCouponPage: React.FC = () => {
   const [confirmCoupon, setConfirmCoupon] = useState<Coupon | null>(null);
   const [toastMessage, setToastMessage] = useState<string>('');
   const [showToast, setShowToast] = useState<boolean>(false);
+  const [toastType, setToastType] = useState<'success' | 'error'>('success');
+
   const token = localStorage.getItem("clinicToken");
 
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -32,34 +34,34 @@ const UseCouponPage: React.FC = () => {
 
   const filteredCoupons = Array.isArray(couponsToShow)
     ? couponsToShow.filter(c => {
-        const titleMatch = c.title.toLowerCase().includes(searchCoupon.toLowerCase());
-        const descMatch = (c.description?.toLowerCase().includes(searchCoupon.toLowerCase()) ?? false);
+      const titleMatch = c.title.toLowerCase().includes(searchCoupon.toLowerCase());
+      const descMatch = (c.description?.toLowerCase().includes(searchCoupon.toLowerCase()) ?? false);
 
-        let isExpired = false;
-        if (c.end_date) {
-          const parts = (c.end_date as unknown as string).split("/");
-          if (parts.length === 3) {
-            const day = Number(parts[0]);
-            const month = Number(parts[1]) - 1;
-            let year = Number(parts[2]);
-            if (year > 2500) year -= 543;
-            const expDate = new Date(year, month, day);
-            const today = new Date();
-            today.setHours(0,0,0,0);
-            expDate.setHours(0,0,0,0);
-            isExpired = expDate < today;
-          }
+      let isExpired = false;
+      if (c.end_date) {
+        const parts = (c.end_date as unknown as string).split("/");
+        if (parts.length === 3) {
+          const day = Number(parts[0]);
+          const month = Number(parts[1]) - 1;
+          let year = Number(parts[2]);
+          if (year > 2500) year -= 543;
+          const expDate = new Date(year, month, day);
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
+          expDate.setHours(0, 0, 0, 0);
+          isExpired = expDate < today;
         }
+      }
 
-        const isOutOfStock = c.limit_per_user !== null && c.limit_per_user !== undefined && c.limit_per_user <= 0;
-        const isUsable = !isExpired && !isOutOfStock;
+      const isOutOfStock = c.limit_per_user !== null && c.limit_per_user !== undefined && c.limit_per_user <= 0;
+      const isUsable = !isExpired && !isOutOfStock;
 
-        if (couponFilter === 'usable' && !isUsable) return false;
-        if (couponFilter === 'expired' && !isExpired) return false;
-        if (couponFilter === 'outOfStock' && !isOutOfStock) return false;
+      if (couponFilter === 'usable' && !isUsable) return false;
+      if (couponFilter === 'expired' && !isExpired) return false;
+      if (couponFilter === 'outOfStock' && !isOutOfStock) return false;
 
-        return titleMatch || descMatch;
-      })
+      return titleMatch || descMatch;
+    })
     : [];
 
   const filteredMembers = Array.isArray(members)
@@ -108,26 +110,27 @@ const UseCouponPage: React.FC = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const showNotification = (message: string) => {
+  const showNotification = (message: string, type: 'success' | 'error' = 'success') => {
     setToastMessage(message);
+    setToastType(type);
     setShowToast(true);
     setTimeout(() => setShowToast(false), 3000);
   };
 
   const useCoupon = async (coupon: Coupon) => {
     if (!selectedMember) {
-      alert('กรุณาเลือกสมาชิกก่อนใช้คูปอง');
+      showNotification('กรุณาเลือกสมาชิกก่อนใช้คูปอง', 'error');
       return;
     }
 
     if (selectedMember.point < coupon.point_require) {
-      alert('แต้มไม่เพียงพอในการใช้คูปองนี้');
+      showNotification('แต้มไม่เพียงพอในการใช้คูปองนี้', 'error');
       return;
     }
 
     const storedUser = localStorage.getItem("clinicUser");
     if (!storedUser) {
-      alert('กรุณาเข้าสู่ระบบก่อนใช้คูปอง');
+      showNotification('กรุณาเข้าสู่ระบบก่อนใช้คูปอง', 'error');
       return;
     }
     const username = JSON.parse(storedUser).username;
@@ -157,11 +160,12 @@ const UseCouponPage: React.FC = () => {
         )
       );
 
-      showNotification(`ใช้คูปอง "${coupon.title}" เรียบร้อยแล้ว`);
+      showNotification(`ใช้คูปอง "${coupon.title}" เรียบร้อยแล้ว`, 'success');
+
       fetchCoupons();
     } catch (err) {
       console.error('Error using coupon:', err);
-      alert('เกิดข้อผิดพลาดในการบันทึกการใช้คูปอง');
+      showNotification('เกิดข้อผิดพลาดในการบันทึกการใช้คูปอง', 'error');
     }
   };
 
@@ -227,21 +231,67 @@ const UseCouponPage: React.FC = () => {
         },
       });
 
-      showNotification(`แก้ไขคูปอง "${editCoupon.title}" เรียบร้อยแล้ว`);
+      showNotification(`แก้ไขคูปอง "${editCoupon.title}" เรียบร้อยแล้ว`, 'success');
       closeEditModal();
       fetchCoupons();
     } catch (err) {
       console.error("Error updating coupon:", err);
-      alert("เกิดข้อผิดพลาดในการบันทึกข้อมูล");
+      showNotification("เกิดข้อผิดพลาดในการบันทึกข้อมูล", 'error');
     }
   };
 
   return (
     <div className="space-y-6">
       {showToast && (
-        <div className="fixed top-5 left-1/2 transform -translate-x-1/2 z-50 pointer-events-none">
-          <div className="bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg pointer-events-auto transition-all">
-            {toastMessage}
+        <div className="fixed inset-0 flex items-start justify-end px-4 py-6 pointer-events-none sm:p-6 z-50">
+          <div className="w-full max-w-sm pointer-events-auto">
+            <div className="rounded-lg bg-white shadow-lg ring-1 ring-black ring-opacity-5 overflow-hidden">
+              <div className="p-4">
+                <div className="flex items-start">
+
+                  <div className="flex-shrink-0">
+                    {toastType === 'success' ? (
+                      <svg className="h-6 w-6 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                      </svg>
+                    ) : (
+                      <svg className="h-6 w-6 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    )}
+                  </div>
+
+                  <div className="ml-3 w-0 flex-1 pt-0.5">
+                    <p className="text-sm font-medium text-gray-900">
+                      {toastType === 'success' ? 'สำเร็จ' : 'เกิดข้อผิดพลาด'}
+                    </p>
+                    <p className="mt-1 text-sm text-gray-500">
+                      {toastMessage}
+                    </p>
+                  </div>
+
+                  <div className="ml-4 flex-shrink-0 flex">
+                    <button
+                      onClick={() => setShowToast(false)}
+                      className="bg-white rounded-md inline-flex text-gray-400 hover:text-gray-500 focus:outline-none"
+                    >
+                      <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path
+                          fillRule="evenodd"
+                          d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 
+                    111.414 1.414L11.414 10l4.293 4.293a1 1 
+                    01-1.414 1.414L10 11.414l-4.293 4.293a1 1 
+                    01-1.414-1.414L8.586 10 4.293 5.707a1 1 
+                    010-1.414z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                    </button>
+                  </div>
+
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       )}
