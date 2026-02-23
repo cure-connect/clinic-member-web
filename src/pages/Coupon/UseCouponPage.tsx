@@ -20,6 +20,20 @@ const UseCouponPage: React.FC = () => {
   const [showToast, setShowToast] = useState<boolean>(false);
   const [toastType, setToastType] = useState<'success' | 'error'>('success');
 
+  const [showCreateModal, setShowCreateModal] = useState<boolean>(false);
+
+  const [newReward, setNewReward] = useState({
+    title: "",
+    description: "",
+    point_require: "",
+    limit_per_user: "",
+    start_date: "",
+    end_date: "",
+    status_campaign: "active",
+    created_by: "",
+  });
+
+
   const token = localStorage.getItem("clinicToken");
 
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -240,6 +254,58 @@ const UseCouponPage: React.FC = () => {
     }
   };
 
+  const handleCreateCoupon = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
+    const storedUser = localStorage.getItem("clinicUser");
+    if (!storedUser) {
+      showNotification("กรุณาเข้าสู่ระบบก่อน", "error");
+      return;
+    }
+
+    const username = JSON.parse(storedUser).username;
+
+    try {
+      const body = {
+        ...newReward,
+        created_by: username,
+        point_require: Number(newReward.point_require) || 0,
+        limit_per_user:
+          newReward.limit_per_user === ""
+            ? null
+            : Number(newReward.limit_per_user),
+      };
+
+      await api.post("/reward", body, {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      showNotification("สร้างคูปองเรียบร้อยแล้ว", "success");
+
+      setShowCreateModal(false);
+      fetchCoupons();
+
+      setNewReward({
+        title: "",
+        description: "",
+        point_require: "",
+        limit_per_user: "",
+        start_date: "",
+        end_date: "",
+        status_campaign: "active",
+        created_by: "",
+      });
+
+    } catch (err) {
+      console.error(err);
+      showNotification("เกิดข้อผิดพลาดในการสร้างคูปอง", "error");
+    }
+  };
+
+
   return (
     <div className="space-y-6">
       {showToast && (
@@ -297,7 +363,17 @@ const UseCouponPage: React.FC = () => {
       )}
 
       <div className="bg-white rounded-lg shadow p-6">
-        <h2 className="text-xl font-semibold text-gray-800 mb-6">ใช้คูปอง</h2>
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-xl font-semibold text-gray-800">ใช้คูปอง</h2>
+
+          <button
+            onClick={() => setShowCreateModal(true)}
+            className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition"
+          >
+            + สร้างคูปอง
+          </button>
+        </div>
+
 
         <div className="mb-6 relative" ref={dropdownRef}>
           <label className="block text-sm font-medium text-gray-700 mb-2">เลือกสมาชิก</label>
@@ -591,6 +667,108 @@ const UseCouponPage: React.FC = () => {
           </div>
         </div>
       )}
+
+      {showCreateModal && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center"
+          style={{ backgroundColor: "rgba(0,0,0,0.2)", backdropFilter: "blur(3px)" }}
+        >
+          <div className="bg-white rounded-xl p-6 w-full max-w-md shadow-lg">
+            <h3 className="text-lg font-semibold mb-4">สร้างคูปองใหม่</h3>
+
+            <form onSubmit={handleCreateCoupon} className="space-y-3">
+
+              <input
+                type="text"
+                placeholder="ชื่อคูปอง"
+                required
+                value={newReward.title}
+                onChange={(e) =>
+                  setNewReward({ ...newReward, title: e.target.value })
+                }
+                className="w-full border px-3 py-2 rounded-lg"
+              />
+
+              <textarea
+                placeholder="รายละเอียด"
+                required
+                value={newReward.description}
+                onChange={(e) =>
+                  setNewReward({ ...newReward, description: e.target.value })
+                }
+                className="w-full border px-3 py-2 rounded-lg"
+              />
+
+              <div className="grid grid-cols-2 gap-2">
+                <input
+                  type="text"
+                  placeholder="แต้มที่ใช้"
+                  value={newReward.point_require}
+                  onChange={(e) =>
+                    setNewReward({
+                      ...newReward,
+                      point_require: e.target.value.replace(/[^0-9]/g, ""),
+                    })
+                  }
+                  className="border px-3 py-2 rounded-lg"
+                  required
+                />
+
+                <input
+                  type="text"
+                  placeholder="จำนวนจำกัด"
+                  value={newReward.limit_per_user}
+                  onChange={(e) =>
+                    setNewReward({
+                      ...newReward,
+                      limit_per_user: e.target.value.replace(/[^0-9]/g, ""),
+                    })
+                  }
+                  className="border px-3 py-2 rounded-lg"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                <input
+                  type="date"
+                  value={newReward.start_date}
+                  onChange={(e) =>
+                    setNewReward({ ...newReward, start_date: e.target.value })
+                  }
+                  className="border px-3 py-2 rounded-lg"
+                />
+
+                <input
+                  type="date"
+                  value={newReward.end_date}
+                  onChange={(e) =>
+                    setNewReward({ ...newReward, end_date: e.target.value })
+                  }
+                  className="border px-3 py-2 rounded-lg"
+                />
+              </div>
+
+              <div className="flex justify-end gap-3 mt-4">
+                <button
+                  type="button"
+                  onClick={() => setShowCreateModal(false)}
+                  className="px-4 py-2 bg-gray-300 rounded-lg"
+                >
+                  ยกเลิก
+                </button>
+
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+                >
+                  สร้างคูปอง
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
 
     </div>
   );

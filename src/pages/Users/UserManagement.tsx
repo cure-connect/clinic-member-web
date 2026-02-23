@@ -17,8 +17,8 @@ const UsersManagementPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [showSuccessModal, setShowSuccessModal] = useState(false);
-  const [successMessage, setSuccessMessage] = useState("");
+  // const [showSuccessModal, setShowSuccessModal] = useState(false);
+  // const [successMessage, setSuccessMessage] = useState("");
   const [userToDelete, setUserToDelete] = useState<Staff | null>(null);
 
   const [newUser, setNewUser] = useState({
@@ -102,9 +102,8 @@ const UsersManagementPage: React.FC = () => {
       setShowDeleteModal(false);
       setUserToDelete(null);
 
-      setSuccessMessage("ลบผู้ใช้เรียบร้อยแล้ว");
-      setShowSuccessModal(true);
-      setTimeout(() => setShowSuccessModal(false), 2000);
+      showNotification("ลบผู้ใช้เรียบร้อยแล้ว", "success");
+
     } catch (error) {
       console.error("Error deleting user:", error);
       showNotification("ไม่สามารถลบผู้ใช้ได้", "error");
@@ -149,9 +148,8 @@ const UsersManagementPage: React.FC = () => {
         role: "manager",
       });
 
-      setSuccessMessage("สร้างผู้ใช้ใหม่สำเร็จ");
-      setShowSuccessModal(true);
-      setTimeout(() => setShowSuccessModal(false), 2000);
+      showNotification("สร้างผู้ใช้ใหม่สำเร็จ", "success");
+
 
       fetchStaffs();
     } catch (error) {
@@ -161,68 +159,57 @@ const UsersManagementPage: React.FC = () => {
   };
 
   const showNotification = (message: string, type: "success" | "error") => {
-  setToastMessage(message);
-  setToastType(type);
-  setShowToast(true);
-  setTimeout(() => setShowToast(false), 3000);
-};
+    setToastMessage(message);
+    setToastType(type);
+    setShowToast(true);
+    setTimeout(() => setShowToast(false), 3000);
+  };
 
 
   return (
     <div className="space-y-4 p-4 sm:p-6">
-            {showToast && (
-        <div className="fixed inset-0 flex items-start justify-end px-4 py-6 pointer-events-none sm:p-6 z-50">
-          <div className="w-full max-w-sm pointer-events-auto">
-            <div className="rounded-lg bg-white shadow-lg ring-1 ring-black ring-opacity-5 overflow-hidden">
-              <div className="p-4">
-                <div className="flex items-start">
-
-                  <div className="flex-shrink-0">
-                    {toastType === 'success' ? (
-                      <svg className="h-6 w-6 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                      </svg>
-                    ) : (
-                      <svg className="h-6 w-6 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                      </svg>
-                    )}
-                  </div>
-
-                  <div className="ml-3 w-0 flex-1 pt-0.5">
-                    <p className="text-sm font-medium text-gray-900">
-                      {toastType === 'success' ? 'สำเร็จ' : 'เกิดข้อผิดพลาด'}
-                    </p>
-                    <p className="mt-1 text-sm text-gray-500">
-                      {toastMessage}
-                    </p>
-                  </div>
-
-                  <div className="ml-4 flex-shrink-0 flex">
-                    <button
-                      onClick={() => setShowToast(false)}
-                      className="bg-white rounded-md inline-flex text-gray-400 hover:text-gray-500 focus:outline-none"
-                    >
-                      <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                        <path
-                          fillRule="evenodd"
-                          d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 
-                    111.414 1.414L11.414 10l4.293 4.293a1 1 
-                    01-1.414 1.414L10 11.414l-4.293 4.293a1 1 
-                    01-1.414-1.414L8.586 10 4.293 5.707a1 1 
-                    010-1.414z"
-                          clipRule="evenodd"
-                        />
-                      </svg>
-                    </button>
-                  </div>
-
-                </div>
-              </div>
+      {showToast && (
+        <div className="fixed top-5 right-5 z-[999] animate-slide-in">
+          <div
+            className={`w-80 rounded-xl shadow-xl border p-4 flex items-start gap-3
+      ${toastType === "success"
+                ? "bg-white border-green-200"
+                : "bg-white border-red-200"
+              }`}
+          >
+            <div>
+              {toastType === "success" ? (
+                <CheckCircle className="w-6 h-6 text-green-500" />
+              ) : (
+                <svg
+                  className="w-6 h-6 text-red-500"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                  viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              )}
             </div>
+
+            <div className="flex-1">
+              <p className="font-semibold text-gray-800">
+                {toastType === "success" ? "สำเร็จ" : "เกิดข้อผิดพลาด"}
+              </p>
+              <p className="text-sm text-gray-500">{toastMessage}</p>
+            </div>
+
+            <button
+              onClick={() => setShowToast(false)}
+              className="text-gray-400 hover:text-gray-600"
+            >
+              ✕
+            </button>
           </div>
         </div>
       )}
+
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 sm:gap-0">
         <h2 className="text-xl font-semibold text-gray-800">จัดการผู้ใช้งาน</h2>
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
@@ -446,19 +433,6 @@ const UsersManagementPage: React.FC = () => {
                 ลบ
               </button>
             </div>
-          </div>
-        </div>
-      )}
-
-      {showSuccessModal && (
-        <div className="fixed inset-0 flex items-center justify-center z-[60] p-4">
-          <div className="absolute inset-0 bg-black opacity-40"></div>
-          <div className="bg-white rounded-xl shadow-2xl p-8 z-10 flex flex-col items-center text-center transform transition-all scale-100 animate-bounce-in max-w-sm w-full">
-            <div className="bg-green-100 rounded-full p-3 mb-4">
-              <CheckCircle className="text-green-600 w-12 h-12" />
-            </div>
-            <p className="text-lg font-semibold text-gray-800 mb-1">{successMessage}</p>
-            <p className="text-sm text-gray-500">ดำเนินการเรียบร้อยแล้ว</p>
           </div>
         </div>
       )}
