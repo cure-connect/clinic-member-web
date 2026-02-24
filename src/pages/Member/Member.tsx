@@ -3,6 +3,7 @@ import { Search, Eye, Edit, Trash2, Printer, Plus, X, Upload, Download } from 'l
 import type { Member } from '../../types/index.tsx';
 import MemberCard from '../../components/UI/MemberCard.tsx';
 import api from '../../utils/axiosInstance.ts'
+import logo from "../../assets/Wanna_Logo.png";
 
 interface NewMember {
   title: string;
@@ -313,7 +314,7 @@ const MembersPage: React.FC = () => {
           height: 5.39cm;
           padding: 0.3cm;
           box-sizing: border-box;
-          background: linear-gradient(to right, rgb(59, 130, 246), rgb(37, 99, 235));
+          background: #2596be;
           color: white;
           border-radius: 0.3rem;
           box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
@@ -323,6 +324,11 @@ const MembersPage: React.FC = () => {
           font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
           -webkit-print-color-adjust: exact !important;
           print-color-adjust: exact !important;
+        }
+
+        .logo {
+          height: 0.9cm;
+          object-fit: contain;
         }
 
         .header {
@@ -440,8 +446,7 @@ const MembersPage: React.FC = () => {
       <div class="card">
         <div class="header">
           <div>
-            <h2>Wanna Clinic</h2>
-            <p>Member Card</p>
+            <img src="${logo}" class="logo" alt="Wanna Clinic Logo" />
           </div>
         </div>
         <div class="content">

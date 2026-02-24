@@ -1,33 +1,30 @@
 import React from 'react';
 import type { MemberCardProps } from '../../types/index.tsx';
+import logo from "../../assets/Wanna_Logo.png";
+
 
 const MemberCard: React.FC<MemberCardProps> = ({ member, showPrint = false }) => {
   return (
     <div
-      className={`bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg shadow-lg flex flex-col justify-between ${showPrint ? 'print-card' : ''
+      className={`text-white rounded-lg shadow-lg flex flex-col justify-between ${showPrint ? 'print-card' : ''
         }`}
       style={{
         width: '8.56cm',
         height: '5.4cm',
         padding: '0.3cm',
-        boxSizing: 'border-box'
+        boxSizing: 'border-box',
+        backgroundColor: '#2596be'
       }}
     >
-      <div className="flex justify-between items-start">
-        <div>
-          <h2
-            className="font-bold uppercase tracking-wide"
-            style={{ fontSize: '0.38cm', lineHeight: '0.42cm' }}
-          >
-            Wanna Clinic
-          </h2>
-          <p
-            className="opacity-90"
-            style={{ fontSize: '0.24cm', lineHeight: '0.28cm' }}
-          >
-            Member Card
-          </p>
-        </div>
+      <div className="flex justify-start items-center">
+        <img
+          src={logo}
+          alt="Wanna Clinic Logo"
+          style={{
+            height: '0.9cm',
+            objectFit: 'contain'
+          }}
+        />
       </div>
 
       <div className="flex flex-row items-center gap-2 flex-1">
@@ -67,24 +64,24 @@ const MemberCard: React.FC<MemberCardProps> = ({ member, showPrint = false }) =>
           />
         </div>
       </div>
-<div
-  className="mt-2 border-t border-white/30 pt-2 flex justify-between items-end"
->
-  <div className="space-y-0.5">
-    <p
-      className="opacity-90"
-      style={{ fontSize: '0.24cm', lineHeight: '0.32cm' }}
-    >
-      เบอร์โทรศัพท์: 099-394-9365
-    </p>
-    <p
-      className="opacity-90"
-      style={{ fontSize: '0.24cm', lineHeight: '0.32cm' }}
-    >
-      697 80 ถนน สุรชัย ตำบล มะขามหย่ง อำเภอเมืองชลบุรี ชลบุรี 20000
-    </p>
-  </div>
-</div>
+      <div
+        className="mt-2 border-t border-white/30 pt-2 flex justify-between items-end"
+      >
+        <div className="space-y-0.5">
+          <p
+            className="opacity-90"
+            style={{ fontSize: '0.24cm', lineHeight: '0.32cm' }}
+          >
+            เบอร์โทรศัพท์: 099-394-9365
+          </p>
+          <p
+            className="opacity-90"
+            style={{ fontSize: '0.24cm', lineHeight: '0.32cm' }}
+          >
+            697 80 ถนน สุรชัย ตำบล มะขามหย่ง อำเภอเมืองชลบุรี ชลบุรี 20000
+          </p>
+        </div>
+      </div>
 
     </div>
   );
